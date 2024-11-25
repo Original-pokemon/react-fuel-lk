@@ -1,0 +1,20 @@
+export type ContractType = {
+  id: number;
+  code: number;
+  contragentname: string;
+  fuelname: string;
+  orgname: string | Record<string, unknown>;
+  remain: number;
+  dcode: string;
+  dname: string;
+  dcomment: string;
+  dtipcen: string;
+  dvidvzaimorasch: string;
+  ddate: string;
+  dsrokd: string;
+  ddiscount: string;
+  dsumma: number;
+  dneuchitvzaimr: number;
+  dcoeffcen: number;
+  dkredit: number;
+};
