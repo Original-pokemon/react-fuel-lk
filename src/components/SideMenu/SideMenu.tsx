@@ -20,7 +20,7 @@ function SideMenu({ open, onClose, menu }: SideMenuPropertiesType) {
       <DataDrawer.Header title={<Logo />} onClose={onClose} />
 
       <DataDrawer.Body>
-        <MainMenu menu={menu} />
+        <MainMenu menu={menu} onClick={onClose} />
       </DataDrawer.Body>
     </DataDrawer>
   );

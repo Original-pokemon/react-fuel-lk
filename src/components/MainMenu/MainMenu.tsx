@@ -18,6 +18,7 @@ export type MenuType = {
 
 type MenuProperties = {
   menu: MenuType;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
 };
 
 const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -26,7 +27,7 @@ const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
   target.classList.toggle('active');
 };
 
-function MainMenu({ menu }: MenuProperties) {
+function MainMenu({ menu, onClick }: MenuProperties) {
   return (
     <List css={MainMenuStyle}>
       {menu.map((item) => (
@@ -46,7 +47,10 @@ function MainMenu({ menu }: MenuProperties) {
                 key={listItem.id}
                 className="listItem"
                 // className={({ isActive }) => isActive ? "listItem active" : "listItem"}
-                onClick={handleClick}
+                onClick={(event) => {
+                  handleClick(event);
+                  onClick(event);
+                }}
               >
                 {listItem.icon}
                 <ListItemText className="listItemTitle">
