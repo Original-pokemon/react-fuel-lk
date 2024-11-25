@@ -7,6 +7,9 @@ import path from "node:path";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'process.env': {},
+  },
   resolve: {
     alias: {
       "#root": path.resolve(__dirname, "src"),
