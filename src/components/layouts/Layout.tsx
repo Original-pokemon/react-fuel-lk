@@ -85,7 +85,7 @@ function Layout() {
       <Box className="container">
         {!isMobile && (
           <Box className="menuContainer">
-            <MainMenu menu={menu} />
+            <MainMenu menu={menu} onClick={handleMenuClose} />
           </Box>
         )}
         <Box className="contentContainer">
