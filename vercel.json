@@ -6,7 +6,7 @@
     },
     {
       "source": "/api/:path*",
-      "destination": "${BACKEND_URL}/:path*"
+      "destination": "http://185.55.1.82:63999/:path*"
     }
   ]
 }
