@@ -1,6 +1,7 @@
 import { Box, BoxProps, styled } from '@mui/material';
 
 const InfoStyledBox = styled(Box)<BoxProps>(({ theme }) => ({
+  maxWidth: '30rem',
   minHeight: '15rem',
   padding: '2rem',
   borderRadius: '10px',

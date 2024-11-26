@@ -11,10 +11,6 @@ const MainMenuStyle = css({
       fontWeight: 600,
       color: theme.palette.text.primary,
       textTransform: 'uppercase',
-
-      [theme.breakpoints.values.lg]: {
-        display: 'none',
-      },
     },
 
     '.listItem': {
@@ -30,12 +26,6 @@ const MainMenuStyle = css({
 
       '&:hover': {
         backgroundColor: theme.palette.background.default,
-      },
-
-      '.listItemTitle': {
-        [theme.breakpoints.values.lg]: {
-          display: 'none',
-        },
       },
     },
   },

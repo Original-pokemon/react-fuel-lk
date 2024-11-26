@@ -38,8 +38,6 @@ const mapConfig = {
 };
 const markers = prepareMarkers(mapInfo);
 
-// Выводить критичную информацию, у каких карт низкий баланк, какие карты заблокированы и т.д.
-
 function Home() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -66,17 +64,14 @@ function Home() {
         </Box>
         <Box className="box box2">
           <FirmWalletDisplay fuelWallet={firmInfo.firmwallet} />
-          {/* <CardsBox /> */}
         </Box>
         <Box className="box box3">
           <CardsSummary cards={cards} />
-          {/* <BalanceBox /> */}
         </Box>
         <Box className="box box4">
           <ContactsBox />
         </Box>
         <Box
-          style={{ cursor: 'pointer' }}
           className="box box7"
           onClick={() => {
             navigate(AppRoute.AzsMap);
