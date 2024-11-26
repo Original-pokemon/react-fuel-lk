@@ -17,9 +17,8 @@ const LayoutStyleBox = styled(Box)<BoxProps>(({ theme }) => ({
   '.container': {
     flexGrow: '1',
     display: 'flex',
-    gap: '1.2rem',
 
-    paddingRight: '1.2rem',
+    // gap: '1.2rem',
   },
 
   '.menuContainer': {
@@ -38,6 +37,7 @@ const LayoutStyleBox = styled(Box)<BoxProps>(({ theme }) => ({
 
   '.contentContainer': {
     width: '100%',
+    margin: '0 1.2rem',
 
     backgroundColor: theme.palette.background.default,
 
