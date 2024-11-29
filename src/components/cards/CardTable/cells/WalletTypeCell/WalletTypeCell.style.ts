@@ -14,7 +14,7 @@ const WalletTypeBoxStyled = styled(Paper)<
   color: theme.palette.text.secondary,
 
   border: `2px solid ${theme.palette.divider}`,
-  borderRadius: theme.shape.wborderRadius,
+  borderRadius: theme.shape.borderRadius,
   backgroundColor,
 }));
 

@@ -12,7 +12,7 @@ const ProgressBarContainer = styled(Paper)<PaperProps>(({ theme }) => ({
   margin: '0.2em',
 
   border: `2px solid ${theme.palette.divider}`,
-  borderRadius: theme.shape.wborderRadius,
+  borderRadius: theme.shape.borderRadius,
   backgroundColor: theme.palette.background.default,
 }));
 

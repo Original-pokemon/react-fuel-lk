@@ -73,7 +73,7 @@ const theme = createTheme(
       },
     },
     shape: {
-      wborderRadius: 12,
+      borderRadius: 12,
     },
   },
   ruRU,

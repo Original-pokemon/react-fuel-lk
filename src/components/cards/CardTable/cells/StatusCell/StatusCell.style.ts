@@ -10,7 +10,7 @@ const StatusCellStyled = styled(Paper)<
   maxWidth: 'fit-content',
   padding: ['0.2rem', '0.4rem'],
 
-  borderRadius: theme.shape.wborderRadius,
+  borderRadius: theme.shape.borderRadius,
   backgroundColor,
 }));
 

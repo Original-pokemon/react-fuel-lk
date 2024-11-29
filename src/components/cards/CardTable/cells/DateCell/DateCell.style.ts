@@ -15,7 +15,7 @@ const DateCellPaperStyled = styled(Paper)<
   fontSize: '0.875rem',
   color: theme.palette.text.primary,
   backgroundColor,
-  borderRadius: theme.shape.wborderRadius,
+  borderRadius: theme.shape.borderRadius,
 }));
 
 export default DateCellPaperStyled;
