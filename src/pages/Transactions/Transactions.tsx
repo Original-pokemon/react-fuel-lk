@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import debounce from '@mui/material/utils/debounce';
 import {
@@ -23,12 +23,10 @@ import DateRangePicker from '#root/components/transactions/DateRangePicker/DateR
 import TransactionsList from '#root/components/transactions/TransactionsList/TransactionsList';
 import SortMenu from '#root/components/SortMenu/SortMenu';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
-import Filter, {
-  FilterOption,
-  SelectedFiltersType,
-} from '#root/components/Filter/Filter';
-import { TransactionType } from '#root/types';
+import Filter from '#root/components/Filter/Filter';
+import type { TransactionType } from '#root/types';
 import AppRoute from '#root/const/app-route';
+import type { SelectedFiltersType } from '#root/components/Filter/types';
 
 const lastTransactionsOption = {
   label: 'Последние ',
@@ -94,9 +92,9 @@ function Transitions() {
 
       array.push({ label: fuelname, value: String(fuelid) });
     });
-
     return array;
   }, [nomenclature]);
+
   const [searchParameters, setSearchParameters] = useSearchParams();
   const { isLoading: isLoadingTransactions } =
     useAppSelector(getTransactionStatus);
@@ -112,6 +110,8 @@ function Transitions() {
   const [currentSortOption, setCurrentSortOption] = useState<string>(
     lastTransactionsOption.value,
   );
+
+  const tableName = `transactions-${startDate.format('YYYY-MM-DD')}-${endDate.format('YYYY-MM-DD')}`;
 
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
@@ -130,57 +130,62 @@ function Transitions() {
     }
   };
 
-  const handleCardNumberFilterChange = debounce((value: string) => {
-    const newCardNumber = value.trim();
-    setSearchParameters((previous) => {
-      if (newCardNumber) {
-        return { ...previous, filterbycard: newCardNumber };
-      }
+  const handleCardNumberFilterChange = useMemo(() => {
+    return debounce((value: string) => {
+      const newCardNumber = value.trim();
 
-      previous.delete('filterbycard');
-      return previous;
-    });
+      setSearchParameters((previous) => {
+        if (newCardNumber) {
+          return { ...previous, filterbycard: newCardNumber };
+        }
 
-    dispatch(
-      fetchTransactions({
-        firmid: -1,
-        cardnum: Number(newCardNumber) || -1,
-        fromday: startDate.format('YYYY-MM-DD'),
-        day: endDate.format('YYYY-MM-DD'),
-      }),
-    );
-  }, 700);
+        previous.delete('filterbycard');
+        return previous;
+      });
 
-  const handleApplyFilters = (selectedFilters: SelectedFiltersType) => {
-    if (selectedFilters[FILTER_BY_CARD_NAME]) {
-      const { options } = selectedFilters[FILTER_BY_CARD_NAME];
-      const { value } = options[0];
-
-      if (cardNumber !== value) {
-        handleCardNumberFilterChange(value);
-      }
-    }
-
-    if (!selectedFilters[FILTER_BY_CARD_NAME] && cardNumber) {
-      handleCardNumberFilterChange('');
-    }
-
-    if (selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME]) {
-      setTransactionType(
-        selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME].options[0].value,
+      dispatch(
+        fetchTransactions({
+          firmid: -1,
+          cardnum: Number(newCardNumber) || -1,
+          fromday: startDate.format('YYYY-MM-DD'),
+          day: endDate.format('YYYY-MM-DD'),
+        }),
       );
-    } else {
-      setTransactionType('all');
-    }
+    }, 700);
+  }, [dispatch, setSearchParameters, startDate, endDate]);
 
-    if (selectedFilters[FILTER_BY_FUEL_TYPE_NAME]) {
-      const { options } = selectedFilters[FILTER_BY_FUEL_TYPE_NAME];
-      const valueList = options.map((option) => option.value);
-      setFuelType(valueList);
-    } else {
-      setFuelType([]);
-    }
-  };
+  const handleApplyFilters = useCallback(
+    (selectedFilters: SelectedFiltersType) => {
+      if (selectedFilters[FILTER_BY_CARD_NAME]) {
+        const { options } = selectedFilters[FILTER_BY_CARD_NAME];
+        const { value } = options[0];
+
+        if (cardNumber !== value) {
+          handleCardNumberFilterChange(value);
+        }
+      }
+      if (!selectedFilters[FILTER_BY_CARD_NAME] && cardNumber) {
+        handleCardNumberFilterChange('');
+      }
+
+      if (selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME]) {
+        setTransactionType(
+          selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME].options[0].value,
+        );
+      } else {
+        setTransactionType('all');
+      }
+
+      if (selectedFilters[FILTER_BY_FUEL_TYPE_NAME]) {
+        const { options } = selectedFilters[FILTER_BY_FUEL_TYPE_NAME];
+        const valueList = options.map((option) => option.value);
+        setFuelType(valueList);
+      } else {
+        setFuelType([]);
+      }
+    },
+    [cardNumber, handleCardNumberFilterChange],
+  );
 
   const handleSortChange = (option: string) => {
     setCurrentSortOption(option);
@@ -240,11 +245,12 @@ function Transitions() {
       }
       filters={[
         <DateRangePicker
+          key={1}
           initialStartDate={startDate}
           initialEndDate={endDate}
           onDateChange={handleDateChange}
         />,
-        <Filter onChange={handleApplyFilters}>
+        <Filter key={2} onChange={handleApplyFilters}>
           <Filter.FilterTextField
             id={FILTER_BY_CARD_NAME}
             title="Номер карты"
@@ -287,7 +293,7 @@ function Transitions() {
             />
           ) : (
             <TransactionsTable
-              name={`transactions-${startDate.format('YYYY-MM-DD')}-${endDate.format('YYYY-MM-DD')}`}
+                name={tableName}
               transactions={sortedTransactions}
               isLoading={isLoadingTransactions}
             />

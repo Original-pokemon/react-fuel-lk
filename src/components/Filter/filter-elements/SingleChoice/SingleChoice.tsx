@@ -5,56 +5,68 @@ import {
   FormControl,
   Typography,
 } from '@mui/material';
-import React, { memo } from 'react';
-import type { FilterType } from '../../Filter';
-import { useFilterContext } from '../../hooks';
+import React from 'react';
+import { FilterSectionType } from '../../types';
+import {
+  useSelectedFiltersDispatch,
+  useSelectedFiltersState,
+} from '../../hooks';
+import Actions from '../../const';
 
-type SingleChoiceComponentProperties = FilterType & {
+type SingleChoiceComponentProperties = FilterSectionType & {
   defaultValue: string;
 };
 
-const SingleChoice = memo(
-  ({ id, title, options, defaultValue }: SingleChoiceComponentProperties) => {
-    const { selectedFilters, setSelectedFilters } = useFilterContext();
-    const selected = selectedFilters[id]?.options[0]?.value || defaultValue;
+function SingleChoice({
+  id,
+  title,
+  options,
+  defaultValue,
+}: SingleChoiceComponentProperties) {
+  const selectedFilters = useSelectedFiltersState();
+  const dispatch = useSelectedFiltersDispatch();
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedValue = (event.target as HTMLInputElement).value;
-      const selectedOption = options.find(
-        (option) => option.value === selectedValue,
-      );
+  const selected = selectedFilters[id]?.options[0]?.value || defaultValue;
 
-      if (selectedOption) {
-        setSelectedFilters((previous) => ({
-          ...previous,
-          [id]: {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedValue = (event.target as HTMLInputElement).value;
+    const selectedOption = options.find(
+      (option) => option.value === selectedValue,
+    );
+
+    if (selectedOption) {
+      dispatch({
+        type: Actions.ADD_FILTER,
+        payload: {
+          id,
+          filter: {
             title,
             options: [
               { label: selectedOption.label, value: selectedOption.value },
             ],
           },
-        }));
-      }
-    };
+        },
+      });
+    }
+  };
 
-    return (
-      <FormControl id={id} sx={{ p: 2 }}>
-        <Typography variant="subtitle1">{title}</Typography>
-        <RadioGroup value={selected} onChange={handleChange}>
-          {options.map(({ label, value }) => (
-            <FormControlLabel
-              key={value}
-              value={value}
-              control={<Radio />}
-              label={label}
-            />
-          ))}
-        </RadioGroup>
-      </FormControl>
-    );
-  },
-);
+  return (
+    <FormControl id={id} sx={{ p: 2 }}>
+      <Typography variant="subtitle1">{title}</Typography>
+      <RadioGroup value={selected} onChange={handleChange}>
+        {options.map(({ label, value }) => (
+          <FormControlLabel
+            key={value}
+            value={value}
+            control={<Radio />}
+            label={label}
+          />
+        ))}
+      </RadioGroup>
+    </FormControl>
+  );
+}
 
 export type SingleChoiceType = ReturnType<typeof SingleChoice>;
 
-export default SingleChoice;
+export default React.memo(SingleChoice);
