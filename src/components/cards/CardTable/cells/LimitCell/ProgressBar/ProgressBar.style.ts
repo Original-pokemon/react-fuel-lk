@@ -1,6 +1,6 @@
 import { Paper, PaperProps, styled } from '@mui/material';
 
-export const ProgressBarContainer = styled(Paper)<PaperProps>(({ theme }) => ({
+const ProgressBarContainer = styled(Paper)<PaperProps>(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',
@@ -12,6 +12,8 @@ export const ProgressBarContainer = styled(Paper)<PaperProps>(({ theme }) => ({
   margin: '0.2em',
 
   border: `2px solid ${theme.palette.divider}`,
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: theme.shape.wborderRadius,
   backgroundColor: theme.palette.background.default,
 }));
+
+export default ProgressBarContainer;

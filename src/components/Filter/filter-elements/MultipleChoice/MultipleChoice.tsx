@@ -5,12 +5,17 @@ import {
   FormControl,
   Typography,
 } from '@mui/material';
-import { memo } from 'react';
-import type { FilterType } from '../../Filter';
-import { useFilterContext } from '../../hooks';
+import React from 'react';
+import { FilterSectionType } from '../../types';
+import {
+  useSelectedFiltersDispatch,
+  useSelectedFiltersState,
+} from '../../hooks';
+import Actions from '../../const';
 
-const MultipleChoice = memo(({ id, title, options }: FilterType) => {
-  const { selectedFilters, setSelectedFilters } = useFilterContext();
+function MultipleChoice({ id, title, options }: FilterSectionType) {
+  const selectedFilters = useSelectedFiltersState();
+  const dispatch = useSelectedFiltersDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue = event.target.value;
@@ -28,15 +33,22 @@ const MultipleChoice = memo(({ id, title, options }: FilterType) => {
         : selected.filter((option) => option.value !== selectedValue);
 
       if (selected.length > 0) {
-        setSelectedFilters((previous) => ({
-          ...previous,
-          [id]: { title, options: selected },
-        }));
+        dispatch({
+          type: Actions.ADD_FILTER,
+          payload: {
+            id,
+            filter: {
+              title,
+              options: selected,
+            },
+          },
+        });
       } else {
-        setSelectedFilters((previous) => {
-          const updatedFilters = { ...previous };
-          delete updatedFilters[id];
-          return updatedFilters;
+        dispatch({
+          type: Actions.REMOVE_FILTER,
+          payload: {
+            id,
+          },
         });
       }
     }
@@ -67,8 +79,8 @@ const MultipleChoice = memo(({ id, title, options }: FilterType) => {
       </FormGroup>
     </FormControl>
   );
-});
+}
 
 export type MultipleChoiceType = ReturnType<typeof MultipleChoice>;
 
-export default MultipleChoice;
+export default React.memo(MultipleChoice);

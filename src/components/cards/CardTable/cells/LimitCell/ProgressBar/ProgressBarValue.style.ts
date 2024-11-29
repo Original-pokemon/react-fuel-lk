@@ -1,6 +1,6 @@
 import { Box, BoxProps, styled } from '@mui/material';
 
-export const ProgressBarValue = styled(Box)<BoxProps>(({ theme }) => ({
+const ProgressBarValue = styled(Box)<BoxProps>(({ theme }) => ({
   position: 'absolute',
   width: '100%',
   display: 'flex',

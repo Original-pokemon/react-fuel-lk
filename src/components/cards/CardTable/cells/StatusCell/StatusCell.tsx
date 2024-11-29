@@ -2,7 +2,7 @@ import { Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { green, red } from '@mui/material/colors';
-import { StatusCellStyled } from './StatusCell.style';
+import StatusCellStyled from './StatusCell.style';
 
 const getStatusColor = (value: boolean, brightness: keyof typeof green) =>
   value ? red[brightness] : green[brightness];

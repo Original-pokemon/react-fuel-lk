@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { TransactionType } from '#root/types';
+import React from 'react';
 import { DataTable } from '../../layouts/data-layouts/DataTable/DataTable';
 import transactionColumns from './TransactionColumns';
 import { mapTransactionsToRows } from './map-transactions-to-row';
@@ -34,4 +35,4 @@ function TransactionsTable({
   );
 }
 
-export default TransactionsTable;
+export default React.memo(TransactionsTable);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
@@ -23,11 +23,11 @@ type DateRangePickerProperties = {
 
 dayjs.locale('ru');
 
-const DateRangePicker: React.FC<DateRangePickerProperties> = ({
+function DateRangePicker({
   initialStartDate,
   initialEndDate,
   onDateChange,
-}) => {
+}: DateRangePickerProperties) {
   const [startDate, setStartDate] = useState<Dayjs | null>(initialStartDate);
   const [endDate, setEndDate] = useState<Dayjs | null>(initialEndDate);
 
@@ -151,6 +151,6 @@ const DateRangePicker: React.FC<DateRangePickerProperties> = ({
       </Grid>
     </LocalizationProvider>
   );
-};
+}
 
 export default DateRangePicker;

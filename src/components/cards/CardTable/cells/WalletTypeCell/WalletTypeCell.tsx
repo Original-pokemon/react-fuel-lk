@@ -1,5 +1,5 @@
 import theme from '#root/styles/theme';
-import { WalletTypeBoxStyled } from './WalletTypeCell.style';
+import WalletTypeBoxStyled from './WalletTypeCell.style';
 
 const walletTypeNames: { [key: number]: string } = {
   1: 'Топливная',

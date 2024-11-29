@@ -37,7 +37,7 @@ function PageLayout({
       {/* Filters and Sorting */}
       <Grid container justifyContent="space-between" pb={2} spacing={2}>
         {filters &&
-          filters.map((filter, index) => <Grid key={index}>{filter}</Grid>)}
+          filters.map((filter) => <Grid key={filter.key}>{filter}</Grid>)}
 
         {sorting && (
           <Grid offset="auto">

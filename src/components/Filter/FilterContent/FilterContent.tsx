@@ -1,10 +1,12 @@
 import { Box } from '@mui/material';
 import DataDrawer from '#root/components/layouts/data-layouts/DataDrawer/DataDrawer';
+import React from 'react';
 import type { MultipleChoiceType } from '../filter-elements/MultipleChoice/MultipleChoice';
 import type { SingleChoiceType } from '../filter-elements/SingleChoice/SingleChoice';
 import type { FilterTextFieldType } from '../filter-elements/FilterTextField/FilterTextField';
 import FilterHeaderActions from './FilterHeaderActions';
-import { useFilterContext } from '../hooks';
+import { useSelectedFiltersDispatch, useSelectedFiltersState } from '../hooks';
+import Actions from '../const';
 
 export type FilterElementsType =
   | MultipleChoiceType
@@ -18,10 +20,11 @@ type FilterContentProperties = {
 };
 
 function FilterContent({ children, open, onClose }: FilterContentProperties) {
-  const { selectedFilters, setSelectedFilters } = useFilterContext();
+  const dispatch = useSelectedFiltersDispatch();
+  const selectedFilters = useSelectedFiltersState();
 
   const handleClearTemporaryFilters = () => {
-    setSelectedFilters({});
+    dispatch({ type: Actions.CLEAR_FILTERS });
   };
 
   const hasTemporarySelectedFilters = Object.keys(selectedFilters).length > 0;
@@ -52,4 +55,4 @@ function FilterContent({ children, open, onClose }: FilterContentProperties) {
   );
 }
 
-export default FilterContent;
+export default React.memo(FilterContent);

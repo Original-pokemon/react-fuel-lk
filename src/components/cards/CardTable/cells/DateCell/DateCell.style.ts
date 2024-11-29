@@ -1,6 +1,6 @@
 import { PaperProps, Paper, styled } from '@mui/material';
 
-export const DateCellPaperStyled = styled(Paper)<
+const DateCellPaperStyled = styled(Paper)<
   PaperProps & { backgroundColor?: string; flexDirection?: 'row' | 'column' }
 >(({ theme, backgroundColor, flexDirection }) => ({
   display: 'flex',
@@ -15,5 +15,7 @@ export const DateCellPaperStyled = styled(Paper)<
   fontSize: '0.875rem',
   color: theme.palette.text.primary,
   backgroundColor,
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: theme.shape.wborderRadius,
 }));
+
+export default DateCellPaperStyled;

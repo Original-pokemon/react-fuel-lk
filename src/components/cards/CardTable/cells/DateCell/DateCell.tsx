@@ -1,7 +1,7 @@
 import { Typography, PaperProps, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import { DateCellPaperStyled } from './DateCell.style';
+import DateCellPaperStyled from './DateCell.style';
 
 type DateCellProperties = {
   value: string;

@@ -3,7 +3,7 @@ import { PaperProps } from '@mui/material';
 import clsx from 'clsx';
 import ProgressBarValue from './ProgressBarValue.style';
 import { ProgressBarFill } from './ProgressBarFill.style';
-import { ProgressBarContainer } from './ProgressBar.style';
+import ProgressBarContainer from './ProgressBar.style';
 
 type ProgressBarProperties = {
   value: number; // Значение прогресса от 0 до 1
