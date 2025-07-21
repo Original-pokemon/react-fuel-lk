@@ -15,6 +15,8 @@ import FirmWalletDisplay from '#root/components/boxes/FirmWalletDisplay/FirmWall
 import CardsSummary from '#root/components/boxes/CardsSummary/FirmCards';
 import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
 import AppRoute from '#root/const/app-route';
+import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
+import KPIBox from '#root/components/home/KPIBox/KPIBox';
 import HomeStyledBox from './Home.style';
 import ODINTSOVO_COORD from '../../const/map';
 import { prepareMarkers } from '../../utils/markers';
@@ -60,14 +62,28 @@ function Home() {
     isLoaded && (
       <HomeStyledBox className="home">
         <Box className="box box1">
-          <FirmCashDisplay firmCash={firmInfo.firmcash} />
+          <DashboardCard title="Ключевые метрики">
+            <KPIBox label="Баланс" value={firmInfo.firmcash.conf} />
+            <KPIBox
+              label="Задолжность"
+              value={firmInfo.firmcash.unconf ?? 'Нет данных'}
+            />
+            {/* <KPIBox
+              label="Транзакций в неделю"
+              value={transactionsKpi.weekCount}
+            />
+            <KPIBox
+              label="Активные карты (активно /всего)"
+              value={`${activeCards} / ${totalCards}`}
+            /> */}
+          </DashboardCard>
         </Box>
-        <Box className="box box2">
+        {/* <Box className="box box2">
           <FirmWalletDisplay fuelWallet={firmInfo.firmwallet} />
-        </Box>
-        <Box className="box box3">
+        </Box> */}
+        {/* <Box className="box box3">
           <CardsSummary cards={cards} />
-        </Box>
+        </Box> */}
         <Box className="box box4">
           <ContactsBox />
         </Box>
