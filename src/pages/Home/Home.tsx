@@ -70,11 +70,11 @@ function Home() {
     return <Spinner fullscreen />;
   }
 
-  const transactionsKpi = {
-    weekCount: 54,
-    averageDaily: 200,
-    totalSpent: 15_000,
-  };
+  // const transactionsKpi = {
+  //   weekCount: 54,
+  //   averageDaily: 200,
+  //   totalSpent: 15_000,
+  // };
 
   // Generate mock transaction data for the last 30 days
   const mockTransactions: TransactionType[] = [];
@@ -119,15 +119,18 @@ function Home() {
             }}
           >
             <DashboardCard title="Ключевые метрики">
-              <KPIBox label="Баланс" value={firmInfo.firmcash.conf} />
+              <KPIBox
+                label="Баланс"
+                value={firmInfo.firmcash.conf > 0 ? firmInfo.firmcash.conf : 0}
+              />
               <KPIBox
                 label="Задолжность"
-                value={firmInfo.firmcash.unconf ?? 'Нет данных'}
+                value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
               />
-              <KPIBox
+              {/* <KPIBox
                 label="Транзакций в неделю"
                 value={transactionsKpi.weekCount}
-              />
+              /> */}
               <KPIBox
                 label="Активные карты (активно /всего)"
                 value={`${activeCards} / ${totalCards}`}
