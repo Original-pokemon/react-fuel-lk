@@ -2,9 +2,9 @@ import theme from '#root/styles/theme';
 import WalletTypeBoxStyled from './WalletTypeCell.style';
 
 const walletTypeNames: { [key: number]: string } = {
-  1: 'Топливная',
-  2: 'Сервисная',
-  3: 'Комбинированная',
+  1: 'Кошелёк',
+  2: 'Лимитная',
+  3: 'Разовая',
 };
 
 const walletTypeColors: { [key: number]: string } = {
