@@ -4,7 +4,11 @@ function ContactsBox() {
   return (
     <InfoBox
       title="Контакты"
-      data={[{ 'Ольга Иванова': '+7 (999) 999-99-99' }]}
+      data={[
+        { 'Номер телефона ': '+7 (495) 596-82-73' },
+        { 'E-mail': 'ortk-pro@mail.ru' },
+        { WhatsApp: '+7 (929) 643-15-49' },
+      ]}
     />
   );
 }
