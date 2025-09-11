@@ -124,7 +124,7 @@ function Home() {
                 value={firmInfo.firmcash.conf > 0 ? firmInfo.firmcash.conf : 0}
               />
               <KPIBox
-                label="Задолжность"
+                label="Задолженность"
                 value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
               />
               {/* <KPIBox
