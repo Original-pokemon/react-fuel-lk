@@ -1,4 +1,4 @@
-import { DataTable } from '#root/components/layouts/data-layouts/DataTable/DataTable';
+import DataTable from '#root/components/layouts/data-layouts/DataTable/DataTable';
 import { useAppSelector } from '#root/hooks/state';
 import { getFirmStatus } from '#root/store';
 import Spinner from '#root/components/Spinner/Spinner';

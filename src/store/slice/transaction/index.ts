@@ -1,3 +1,3 @@
 export * from './selectors';
-export * from './thunk';
+export { default as fetchTransactions } from './thunk';
 export * from './transaction-data';

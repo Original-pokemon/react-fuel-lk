@@ -1,11 +1,11 @@
 import { combineReducers } from '@reduxjs/toolkit';
-import { NameSpace } from '#root/const';
 import {
   authDataSlice,
   firmDataSlice,
   appDataSlice,
   transactionDataSlice,
 } from './slice';
+import NameSpace from './const';
 
 const reducer = combineReducers({
   [NameSpace.Auth]: authDataSlice.reducer,

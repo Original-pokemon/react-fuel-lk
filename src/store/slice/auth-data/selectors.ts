@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { NameSpace, Status } from '#root/const';
+import { Status } from '#root/const';
 import type { AuthInfoType } from '#root/types';
+import NameSpace from '#root/store/const';
 import type { InitialStateType } from '../../reducer';
 
 type AuthStateType = Pick<InitialStateType, typeof NameSpace.Auth>;

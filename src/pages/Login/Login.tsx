@@ -16,8 +16,7 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Spinner from '#root/components/Spinner/Spinner';
-import { getAuthStatus } from '#root/store';
-import { postAuthData } from '#root/store/slice/auth-data/thunk';
+import { getAuthStatus, postAuthData } from '#root/store';
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import AppRoute from '#root/const/app-route';
 

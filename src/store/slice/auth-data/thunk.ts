@@ -2,10 +2,10 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
 import { AsyncThunkConfig } from '#root/types/thunk-config';
-import { NameSpace } from '#root/const';
 import { dropToken, saveToken } from '#root/services/api/token';
 import type { AuthInfoType } from '#root/types';
-import { APIRoute } from '../../api-route';
+import NameSpace from '#root/store/const';
+import APIRoute from '../../api-route';
 
 export type AuthorizationDataType = {
   role: string;
@@ -35,8 +35,7 @@ export const postAuthData = createAsyncThunk<
     try {
       const { data } = await api.post<
         AuthorizationDataType & { token: string }
-      >(APIRoute.Token, { username, password });
-      // const data = await generateMockAuthorizationData(5000)
+        >(APIRoute.Token, { username, password });
       const { token, ...authData } = data;
 
       saveToken(token, rememberMe);
@@ -69,6 +68,7 @@ export const fetchAuthInfo = createAsyncThunk<
   } catch (error) {
     if (error instanceof AxiosError && error.response?.status === 401) {
       const toastId = 'get-auth-error';
+
       dropToken();
       if (!toast.isActive(toastId)) {
         toast.warn('Пожалуйста, войдите в систему заново.', { toastId });

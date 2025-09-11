@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import type { AuthInfoType, StatusType } from '#root/types';
-import { NameSpace, Status } from '#root/const';
 import { dropToken } from '#root/services/api/token';
+import { Status } from '#root/const';
+import NameSpace from '#root/store/const';
 import { postAuthData, fetchAuthInfo } from './thunk';
 
 type InitialStateType = {

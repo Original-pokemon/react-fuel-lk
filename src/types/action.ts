@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
-import { NameSpace } from '../const/store';
+import NameSpace from '../store/const';
 
 export const setCards = createAction(`${NameSpace.Card}/getCards`);
 export const fetchCurrentLocation = createAction(

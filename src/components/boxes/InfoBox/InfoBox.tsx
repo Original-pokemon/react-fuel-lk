@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { Fragment } from 'react';
 import InfoStyledBox from './InfoBox.style';
 
@@ -15,18 +15,32 @@ function InfoBox({ title, data }: InfoBoxProperties) {
       <Typography variant="h5" component="h1">
         {title}
       </Typography>
-      <Box className="list">
+      <Stack className="list">
         {data.map((item) => (
-          <Box className="listItem" key={title + item}>
+          <Stack
+            className="listItem"
+            key={title + Object.keys(item).join(',')}
+            direction="row"
+            alignContent="flex-start"
+          >
             {Object.entries(item).map(([key, value]) => (
               <Fragment key={key}>
-                <Typography className="name">{key}</Typography>
-                <Typography className="value">{value}</Typography>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  fontSize={18}
+                  className="name"
+                >
+                  {key}
+                </Typography>
+                <Typography variant="body1" className="value">
+                  {value}
+                </Typography>
               </Fragment>
             ))}
-          </Box>
+          </Stack>
         ))}
-      </Box>
+      </Stack>
     </InfoStyledBox>
   );
 }

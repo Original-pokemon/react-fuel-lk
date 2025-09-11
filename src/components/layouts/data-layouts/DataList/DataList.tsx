@@ -61,13 +61,10 @@ function DataList({
   }, [displayedItems, hasMore, isLoading, loadMoreItems]);
 
   return (
-    <Box
-      sx={{ height: '500px', overflowY: 'auto' }} // При необходимости скорректируйте высоту
-    >
+    <Box sx={{ height: '500px', overflowY: 'auto' }}>
       <Stack spacing={2} alignItems="center">
         {displayedItems.map(({ id, header, body }, index) => {
           if (index === displayedItems.length - 1) {
-            // Привязываем реф к последнему элементу
             return (
               <div key={id} ref={lastItemReference}>
                 <DataListItem id={id} header={header} body={body} />

@@ -2,8 +2,9 @@
 import type { StatusType } from '#root/types';
 import type { NomenclatureType } from '#root/types/nomenclature';
 import { createSlice } from '@reduxjs/toolkit';
-import { NameSpace, Status } from '#root/const';
-import { fetchNomenclatureData } from './thunk';
+import { Status } from '#root/const';
+import NameSpace from '#root/store/const';
+import fetchNomenclatureData from './thunk';
 
 type InitialStateType = {
   status: StatusType;
@@ -15,7 +16,7 @@ const initialState: InitialStateType = {
   nomenclature: undefined,
 };
 
-export const appDataSlice = createSlice({
+const appDataSlice = createSlice({
   name: NameSpace.Auth,
   initialState,
   reducers: {},
@@ -33,3 +34,5 @@ export const appDataSlice = createSlice({
       });
   },
 });
+
+export default appDataSlice;

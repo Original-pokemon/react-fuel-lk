@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import type { StatusType, TransactionType } from '#root/types';
-import { NameSpace, Status } from '#root/const';
-import { fetchTransactions } from './thunk';
+import { Status } from '#root/const';
+import NameSpace from '#root/store/const';
+import fetchTransactions from './thunk';
 
 type InitialStateType = {
   status: StatusType;

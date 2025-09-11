@@ -20,7 +20,7 @@ import {
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import { getFirmName, getFirmStatus } from '#root/store/slice/firm/selectors';
 import { logout } from '#root/store';
-import { fetchFirmData } from '#root/store/slice/firm/thunk';
+import fetchFirmData from '#root/store/slice/firm/thunk';
 import Logo from '../logo/Logo';
 
 type NavbarProperties = {
@@ -33,7 +33,7 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
   const { isSuccess, isIdle } = useAppSelector(getFirmStatus);
   const firmName = useAppSelector(getFirmName);
 
-  const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
+  const [anchorElement, setAnchorElement] = useState<undefined | HTMLElement>();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -43,7 +43,7 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
   };
 
   const handleCloseUserMenu = () => {
-    setAnchorElement(null);
+    setAnchorElement(undefined);
   };
 
   useEffect(() => {

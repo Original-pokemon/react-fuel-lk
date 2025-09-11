@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
+import { Status } from '#root/const';
 import type { AppDispatchType, StateType } from '.';
-import { Status } from '../const';
 
 export type AsyncThunkConfig = {
   dispatch: AppDispatchType;

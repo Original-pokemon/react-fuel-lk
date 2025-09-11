@@ -4,6 +4,9 @@ import { dataGridClasses, DataGridStyled } from './DataTable.style';
 type Properties = {
   name?: string;
   pageSizeOptions?: number[];
+  disableToolBar?: boolean;
+  disableFooter?: boolean;
+  disableHeaders?: boolean;
 } & DataGridProps;
 
 function DataTable({
@@ -14,6 +17,9 @@ function DataTable({
   filterModel,
   loading,
   pageSizeOptions = [10, 25, 50],
+  disableToolBar = false,
+  disableFooter = false,
+  disableHeaders = false,
   ...rest
 }: Properties) {
   return (
@@ -30,8 +36,9 @@ function DataTable({
       }}
       density={density}
       slots={{
-        toolbar: GridToolbar,
-        // footer:
+        columnHeaders: disableHeaders ? () => null : undefined,
+        toolbar: disableToolBar ? null : GridToolbar,
+        footer: disableFooter ? () => null : undefined,
       }}
       slotProps={{
         toolbar: {
@@ -54,8 +61,6 @@ function DataTable({
       classes={{
         columnHeaderTitle: dataGridClasses.wrapHeader,
       }}
-      // showColumnVerticalBorder
-      // showCellVerticalBorder
       disableRowSelectionOnClick
       disableDensitySelector
       disableColumnFilter
@@ -67,4 +72,4 @@ function DataTable({
   );
 }
 
-export { DataTable };
+export default DataTable;

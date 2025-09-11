@@ -1,3 +1,3 @@
-export * from './app-data';
+export { default as appDataSlice } from './app-data';
 export * from './selectors';
-export * from './thunk';
+export { default as fetchNomenclatureData } from './thunk';

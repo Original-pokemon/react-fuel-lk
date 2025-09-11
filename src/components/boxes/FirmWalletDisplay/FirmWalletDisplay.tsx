@@ -24,17 +24,26 @@ function FirmWalletDisplay({ fuelWallet }: { fuelWallet: FuelWalletType[] }) {
     return <Spinner fullscreen={false} />;
   }
 
-  const walletData = fuelWallet.map((wallet) => {
-    const fuelNomenclature = nomenclature.find(
-      (nom) => nom.fuelid === wallet.fuelid,
-    );
+  // Фильтруем только те записи, у которых есть fuelname и remain > 0
+  const filteredWalletData = fuelWallet
+    .map((wallet) => {
+      const fuelNomenclature = nomenclature.find(
+        (nom) => nom.fuelid === wallet.fuelid,
+      );
+      if (fuelNomenclature && wallet.remain > 0) {
+        return { [fuelNomenclature.fuelname]: `${wallet.remain} литров` };
+      }
+      return null;
+    })
+    .filter((item) => item !== null) as Record<string, string>[];
 
-    return {
-      [`${fuelNomenclature ? fuelNomenclature.fuelname : 'Неизвестное топливо'}`]: `${wallet.remain} литров`,
-    };
-  });
+  // Если данных нет, показываем сообщение "Нет топлива"
+  const dataToShow =
+    filteredWalletData.length > 0
+      ? filteredWalletData
+      : [{ 'Нет топлива': '' }];
 
-  return <InfoBox title="Баланс топлива" data={walletData} />;
+  return <InfoBox title="Баланс топлива" data={dataToShow} />;
 }
 
 export default FirmWalletDisplay;

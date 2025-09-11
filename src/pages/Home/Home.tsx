@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Box, Grid2 as Grid } from '@mui/material';
+import { Box, Grid2 as Grid, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
@@ -9,20 +9,18 @@ import {
   getFirmStatus,
 } from '#root/store/slice/firm/selectors';
 import Spinner from '#root/components/Spinner/Spinner';
-import { fetchFirmData } from '#root/store';
+import { fetchFirmData, getAppStatus, getNomenclatureInfo } from '#root/store';
 import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
-// import DataListBox from '#root/components/home/DataListBox/DataListBox';
 import KPIBox from '#root/components/home/KPIBox/KPIBox';
-// import {
-//   CardsInfoCard,
-//   FuelBalanceCard,
-//   ExpenseDynamicsChartCard, // Import the new component
-// } from '#root/components/home/boxes/boxex';
 import type { TransactionType } from '#root/types';
 import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
 import AppRoute from '#root/const/app-route';
 import { useNavigate } from 'react-router-dom';
-// import HomeStyledBox from './Home.style';
+
+import {
+  ExpenseDynamicsChartCard,
+  FuelBalanceCard,
+} from '#root/components/home/boxes/boxex';
 import ODINTSOVO_COORD from '../../const/map';
 import { prepareMarkers } from '../../utils/markers';
 import mapInfo from '../../mock/map-info';
@@ -50,15 +48,19 @@ function Home() {
   const navigate = useNavigate();
   const firmInfo = useAppSelector(getFirmInfo);
   const cards = useAppSelector(getFirmCards);
-  // const nomenclature = useAppSelector(getNomenclatureInfo);
+  const nomenclature = useAppSelector(getNomenclatureInfo);
 
   const firmStatus = useAppSelector(getFirmStatus);
-  // const appStatus = useAppSelector(getAppStatus);
+  const appStatus = useAppSelector(getAppStatus);
 
   const isLoaded = firmStatus.isSuccess && firmInfo;
 
-  const totalCards = cards.length;
-  const activeCards = cards.filter((c) => !c.blocked).length;
+  const blockedCardsCount = cards.filter((c) => c.blocked).length;
+  const lowLimitCardsCount = cards.filter(
+    (card) =>
+      card.dayremain < card.daylimit * 0.1 ||
+      card.monthremain < card.monthlimit * 0.1,
+  ).length;
 
   useEffect(() => {
     if (!firmInfo && firmStatus.isIdle) {
@@ -120,27 +122,75 @@ function Home() {
           >
             <DashboardCard title="Ключевые метрики">
               <KPIBox
-                label="Баланс"
+                label="Доступно сейчас:"
                 value={firmInfo.firmcash.conf > 0 ? firmInfo.firmcash.conf : 0}
               />
               <KPIBox
-                label="Задолжность"
+                label="Задолжность:"
                 value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
               />
               {/* <KPIBox
                 label="Транзакций в неделю"
                 value={transactionsKpi.weekCount}
               /> */}
-              <KPIBox
-                label="Активные карты (активно /всего)"
-                value={`${activeCards} / ${totalCards}`}
-              />
+              {/* Заблокированные карты */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.5,
+                  cursor: blockedCardsCount > 0 ? 'pointer' : 'default',
+                }}
+                onClick={
+                  blockedCardsCount > 0
+                    ? () => navigate('/cards?status=blocked')
+                    : undefined
+                }
+              >
+                <Typography variant="body2" color="text.main">
+                  Заблокированные карты:
+                </Typography>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: blockedCardsCount > 0 ? '#D32F2F' : 'text.primary',
+                  }}
+                >
+                  {blockedCardsCount}
+                </Typography>
+              </Box>
+              {/* Карты с низким лимитом */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.5,
+                  cursor: lowLimitCardsCount > 0 ? 'pointer' : 'default',
+                }}
+                onClick={
+                  lowLimitCardsCount > 0
+                    ? () => navigate('/cards?limit_status=10')
+                    : undefined
+                }
+              >
+                <Typography variant="body2" color="text.main">
+                  Карты с низким лимитом:
+                </Typography>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: lowLimitCardsCount > 0 ? '#F57C00' : 'text.primary',
+                  }}
+                >
+                  {lowLimitCardsCount}
+                </Typography>
+              </Box>
             </DashboardCard>
           </Grid>
 
-          {/* <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <ExpenseDynamicsChartCard transactions={mockTransactions} />
-          </Grid> */}
+          </Grid>
 
           <Grid size={{ xs: 12, md: 4 }}>
             <ContactsBox />
@@ -148,14 +198,14 @@ function Home() {
 
           <Grid size={{ xs: 12, md: 4 }} />
 
-          {/* <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             {appStatus.isSuccess && (
               <FuelBalanceCard
                 fuelWallet={firmInfo.firmwallet}
                 nomenclature={nomenclature || []}
               />
             )}
-          </Grid> */}
+          </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Box

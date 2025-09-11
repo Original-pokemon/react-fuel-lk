@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { NameSpace, Status } from '#root/const';
+import { Status } from '#root/const';
+import NameSpace from '#root/store/const';
 import type { InitialStateType } from '../../reducer';
 
 type AppStateType = Pick<InitialStateType, typeof NameSpace.App>;

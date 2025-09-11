@@ -1,10 +1,10 @@
 import type { FirmInfoType, AsyncThunkConfig } from '#root/types';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { NameSpace } from '#root/const';
-import { APIRoute } from '../../api-route';
-import { getFirmId } from '../auth-data/selectors';
+import NameSpace from '#root/store/const';
+import APIRoute from '../../api-route';
+import { getFirmId } from '../auth-data';
 
-export const fetchFirmData = createAsyncThunk<
+const fetchFirmData = createAsyncThunk<
   FirmInfoType,
   undefined,
   AsyncThunkConfig
@@ -22,3 +22,5 @@ export const fetchFirmData = createAsyncThunk<
     return data[0];
   },
 );
+
+export default fetchFirmData;

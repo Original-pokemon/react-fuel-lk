@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { NameSpace, Status } from '#root/const';
+import { Status } from '#root/const';
 import type { InitialStateType } from '#root/store/reducer';
+import NameSpace from '#root/store/const';
 import { transactionsAdapter } from './transaction-data';
 
 type TransactionStateType = Pick<
