@@ -35,14 +35,28 @@ function PageLayout({
       {diagrams && <Box mb={2}>{diagrams}</Box>}
 
       {/* Filters and Sorting */}
-      <Grid container justifyContent="space-between" pb={2} spacing={2}>
-        {filters &&
-          filters.map((filter) => <Grid key={filter.key}>{filter}</Grid>)}
+      <Grid container pb={2} spacing={2}>
+        {/* Filters Section - Vertical Layout */}
+        {filters && filters.length > 0 && (
+          <Grid size="auto">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {filters.map((filter) => (
+                <Box key={filter.key}>{filter}</Box>
+              ))}
+            </Box>
+          </Grid>
+        )}
 
+        {/* Sorting Section - Vertical Layout */}
         {sorting && (
-          <Grid offset="auto">
-            {/* Сортировка */}
-            {sorting}
+          <Grid
+            size="auto"
+            offset="auto"
+            sx={{ display: 'flex', alignItems: 'flex-end' }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {sorting}
+            </Box>
           </Grid>
         )}
       </Grid>
