@@ -43,7 +43,7 @@ const schema = yup.object({
 
 const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
   const char = event.key;
-  const regex = /^[\w-]+$/;
+  const regex = /^[\w!#$%&*.?@-]+$/;
   if (!regex.test(char)) {
     event.preventDefault();
   }
