@@ -8,3 +8,4 @@ export * from './map-point';
 export * from './thunk-config';
 export * from './nomenclature';
 export * from './card';
+export * from './api-response';

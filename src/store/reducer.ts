@@ -5,6 +5,7 @@ import {
   firmDataSlice,
   appDataSlice,
   transactionDataSlice,
+  apiResponseDataSlice,
 } from './slice';
 
 const reducer = combineReducers({
@@ -12,6 +13,7 @@ const reducer = combineReducers({
   [NameSpace.Firm]: firmDataSlice.reducer,
   [NameSpace.App]: appDataSlice.reducer,
   [NameSpace.Transaction]: transactionDataSlice.reducer,
+  [NameSpace.ApiResponse]: apiResponseDataSlice.reducer,
 });
 
 export type InitialStateType = ReturnType<typeof reducer>;

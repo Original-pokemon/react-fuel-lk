@@ -4,6 +4,7 @@ export const NameSpace = {
   Firm: 'firm',
   Card: 'card',
   Transaction: 'transaction',
+  ApiResponse: 'apiResponse',
 } as const;
 
 export const Status = {
