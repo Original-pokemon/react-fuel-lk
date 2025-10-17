@@ -8,9 +8,9 @@ export const fetchApiResponseData = createAsyncThunk<
   ApiResponseType,
   number,
   AsyncThunkConfig
->(
-  `${NameSpace.ApiResponse}/getApiResponseData`,
-  async (firmId, { extra: api }) => {
+  >(
+    `${NameSpace.ApiResponse}/getApiResponseData`,
+    async (_firmId, { extra: api }) => {
     const { data } = await api.get<ApiResponseType>(APIRoute.FullData);
 
     return adaptApiResponse(data);

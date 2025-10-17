@@ -1,5 +1,5 @@
 import { Divider, Typography, Grid2 } from '@mui/material';
-import { CardType } from '#root/types';
+import { CardInfoType } from '#root/types';
 import { DataListItemProps } from '#root/components/layouts/data-layouts/DataList/DataListItem/DataListItem';
 import DataList from '#root/components/layouts/data-layouts/DataList/DataList';
 import LimitCell from '../CardTable/cells/LimitCell/LimitCell';
@@ -9,24 +9,24 @@ import CardListHeader from './CardListHeader';
 import { DateCell } from '../CardTable/cells/DateCell/DateCell';
 
 const getCardBodyElement = ({
-  cardowner,
-  datelastop,
-  wallettype,
+  cardOwner,
+  date,
+  walletType,
   blocked,
-  dayremain,
-  daylimit,
-  monthremain,
-  monthlimit,
-}: CardType): React.ReactElement => (
+  dayRemain,
+  dayLimit,
+  monthRemain,
+  monthLimit,
+}: CardInfoType): React.ReactElement => (
   <Grid2 container spacing={2}>
     {/* Owner and Last Operation */}
     <Grid2 size={12} container columnSpacing={1} rowSpacing={1}>
-      {cardowner.trim() && (
+      {cardOwner.trim() && (
         <Grid2 size={12}>
           <Typography variant="caption" color="main.light">
             Владелец карты:
           </Typography>
-          <Typography variant="subtitle2">{cardowner}</Typography>
+          <Typography variant="subtitle2">{cardOwner}</Typography>
         </Grid2>
       )}
 
@@ -35,7 +35,7 @@ const getCardBodyElement = ({
           Последняя операция:
         </Typography>
         <DateCell
-          value={datelastop}
+          value={date}
           flexDirection="row"
           backgroundColor="#ffff"
           variant="outlined"
@@ -46,14 +46,14 @@ const getCardBodyElement = ({
         <Typography variant="caption" color="main.light">
           Тип кошелька:
         </Typography>
-        <WalletTypeCell value={wallettype} />
+        <WalletTypeCell value={walletType} />
       </Grid2>
 
       <Grid2 size={6}>
         <Typography variant="caption" color="main.light">
           Статус:
         </Typography>
-        <StatusCell value={blocked} />
+        <StatusCell value={Boolean(blocked)} />
       </Grid2>
     </Grid2>
 
@@ -67,20 +67,20 @@ const getCardBodyElement = ({
         <Typography variant="caption" color="main.light">
           Дневной:
         </Typography>
-        <LimitCell limit={daylimit} remain={dayremain} />
+        <LimitCell limit={+dayLimit} remain={+dayRemain} />
       </Grid2>
       <Grid2 size={6}>
         <Typography variant="caption" color="main.light">
           Месячный:
         </Typography>
-        <LimitCell limit={monthlimit} remain={monthremain} />
+        <LimitCell limit={+monthLimit} remain={+monthRemain} />
       </Grid2>
     </Grid2>
   </Grid2>
 );
 
 type CardListProperties = {
-  cards: CardType[];
+  cards: CardInfoType[];
   isLoading: boolean;
 };
 
@@ -90,7 +90,7 @@ function CardsList({ cards, isLoading }: CardListProperties) {
     const headerElement = CardListHeader(card);
 
     return {
-      id: card.cardnum.toString(),
+      id: card.cardNumber.toString(),
       header: headerElement,
       body: bodyElement,
     };

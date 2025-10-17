@@ -68,14 +68,36 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
 
         {!isMobile && <Logo />}
 
-        <Box sx={{ flexGrow: 1 }} />
+        {isMobile ? (
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontSize: '0.75rem',
+                textAlign: 'center',
+              }}
+            >
+              {isSuccess ? firmName : 'Загрузка...'}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ flexGrow: 1 }} />
+        )}
 
         <Tooltip title="Открыть настройки пользователя">
           <IconButton color="inherit" onClick={handleOpenUserMenu}>
             <PersonIcon />
-            <Typography variant="subtitle1" sx={{ ml: 1 }}>
-              {isSuccess ? firmName : 'Загрузка...'}
-            </Typography>
+            {!isMobile && (
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  ml: 1,
+                  fontSize: '1rem',
+                }}
+              >
+                {isSuccess ? firmName : 'Загрузка...'}
+              </Typography>
+            )}
           </IconButton>
         </Tooltip>
         <Menu

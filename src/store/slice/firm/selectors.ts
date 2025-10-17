@@ -2,7 +2,6 @@ import { createSelector } from '@reduxjs/toolkit';
 import { NameSpace, Status } from '#root/const';
 import type { FirmCashType, FirmInfoType } from '#root/types';
 import type { InitialStateType } from '../../reducer';
-import { cardsAdapter } from './firm-data';
 
 type FirmStateType = Pick<InitialStateType, typeof NameSpace.Firm>;
 
@@ -27,11 +26,3 @@ export const getFirmWallet = (
   state: FirmStateType,
 ): FirmInfoType['firmwallet'] | undefined =>
   state[NameSpace.Firm].firmInfo?.firmwallet;
-
-export const {
-  selectById: getFirmCardById,
-  selectAll: getFirmCards,
-  selectEntities: getFirmCardsEntities,
-} = cardsAdapter.getSelectors<FirmStateType>(
-  (state) => state[NameSpace.Firm].cards,
-);

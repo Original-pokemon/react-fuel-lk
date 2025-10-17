@@ -9,7 +9,7 @@ type DashboardCardProperties = {
 
 function DashboardCard({ title, children, actions }: DashboardCardProperties) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%', maxWidth: '30rem' }}>
       {title && (
         <CardHeader
           title={

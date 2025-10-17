@@ -5,8 +5,14 @@ import {
   Menu,
   MenuItem,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { ArrowDropDown, ArrowDropUp } from '@mui/icons-material';
+import {
+  ArrowDropDown,
+  ArrowDropUp,
+  Sort as SortIcon,
+} from '@mui/icons-material';
 
 type SortOption = {
   label: string;
@@ -26,6 +32,8 @@ function SortMenu({
   currentSort,
   sortOptions,
 }: SortMenuProperties) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -50,15 +58,21 @@ function SortMenu({
         aria-controls="sort-menu"
         aria-haspopup="true"
         onClick={handleClick}
-        endIcon={anchorElement ? <ArrowDropUp /> : <ArrowDropDown />}
+        startIcon={isSmallScreen ? <SortIcon /> : undefined}
+        endIcon={
+          !isSmallScreen &&
+          (anchorElement ? <ArrowDropUp /> : <ArrowDropDown />)
+        }
       >
-        <Typography
-          variant="body2"
-          width={{ xs: 84, sm: 160 }}
-          sx={{ wordWrap: 'break-word' }}
-        >
-          {label}: {currentSortLabel}
-        </Typography>
+        {!isSmallScreen && (
+          <Typography
+            variant="body2"
+            width={{ xs: 84, sm: 160 }}
+            sx={{ wordWrap: 'break-word' }}
+          >
+            {label}: {currentSortLabel}
+          </Typography>
+        )}
       </Button>
 
       <Menu

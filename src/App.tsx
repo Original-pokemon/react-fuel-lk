@@ -9,7 +9,13 @@ import Login from './pages/Login/Login';
 import AzsMap from './pages/AzsMap/AzsMap';
 import AuthGuard from './components/AuthGuard/AuthGuard';
 import { useAppDispatch, useAppSelector } from './hooks/state';
-import { getAuthStatus, fetchFirmData, fetchNomenclatureData } from './store';
+import {
+  getAuthStatus,
+  fetchFirmData,
+  fetchNomenclatureData,
+  fetchApiResponseData,
+  getAuthData,
+} from './store';
 import Layout from './components/layouts/Layout';
 import 'react-toastify/dist/ReactToastify.css';
 import AppRoute from './const/app-route';
@@ -17,13 +23,15 @@ import AppRoute from './const/app-route';
 function App() {
   const dispatch = useAppDispatch();
   const { isSuccess: isAuthSuccess } = useAppSelector(getAuthStatus);
+  const data = useAppSelector(getAuthData);
 
   useEffect(() => {
-    if (isAuthSuccess) {
+    if (isAuthSuccess && data) {
+      dispatch(fetchApiResponseData(data.firmId));
       dispatch(fetchFirmData());
       dispatch(fetchNomenclatureData());
     }
-  }, [dispatch, isAuthSuccess]);
+  }, [data, dispatch, isAuthSuccess]);
 
   return (
     <>

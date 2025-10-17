@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { Grid, Card, CardContent, Typography } from '@mui/material';
 import { useAppSelector } from '#root/hooks/state';
-import { getFirmCards } from '#root/store'; // Предполагается, что вы получаете карты из Redux
+import { getApiResponseFirmCards } from '#root/store';
 
 function CardsSummary() {
-  const cards = useAppSelector(getFirmCards);
+  const cards = useAppSelector(getApiResponseFirmCards);
 
   const { totalCards, activeCards, blockedCards, totalFuelVolume } =
     useMemo(() => {
@@ -16,8 +16,8 @@ function CardsSummary() {
       let totalFuelVolumeResult = 0;
 
       cards.forEach((card) => {
-        card.fuels.forEach((fuel) => {
-          totalFuelVolumeResult += fuel.volume;
+        Object.values(card.wallets).forEach((fuel) => {
+          totalFuelVolumeResult += +fuel;
         });
       });
 

@@ -8,7 +8,7 @@ import {
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
-import { getFirmCardById } from '#root/store';
+import { getApiResponseFirmCardById } from '#root/store';
 import { useAppSelector } from '#root/hooks/state';
 import AppRoute from '#root/const/app-route';
 import MainMenu from '../MainMenu/MainMenu';
@@ -60,7 +60,9 @@ const menu = [
 function Layout() {
   const [searchParameters] = useSearchParams();
   const cardnumber = Number(searchParameters.get('modalcardnum'));
-  const card = useAppSelector((state) => getFirmCardById(state, cardnumber));
+  const card = useAppSelector((state) =>
+    getApiResponseFirmCardById(state, cardnumber),
+  );
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 

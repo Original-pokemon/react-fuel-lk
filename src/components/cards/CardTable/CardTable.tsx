@@ -2,30 +2,41 @@ import { DataTable } from '#root/components/layouts/data-layouts/DataTable/DataT
 import { useAppSelector } from '#root/hooks/state';
 import { getFirmStatus } from '#root/store';
 import Spinner from '#root/components/Spinner/Spinner';
-import { CardType } from '#root/types';
+import { CardInfoType } from '#root/types';
 import CardsColumns from './СardsСolumns';
 
 type CardsTable = {
-  cards: CardType[];
+  cards: CardInfoType[];
 };
 
 function CardTable({ cards }: CardsTable) {
   const { isIdle, isLoading, isError, isSuccess } =
     useAppSelector(getFirmStatus);
 
-  const rows = cards.map((card) => ({
-    id: card.cardnum,
-    cardnum: card.cardnum,
-    cardowner: card.cardowner,
-    blocked: card.blocked,
-    wallettype: card.wallettype,
-    monthlimit: card.monthlimit,
-    monthremain: card.monthremain,
-    daylimit: card.daylimit,
-    dayremain: card.dayremain,
-    datedaylimit: card.datedaylimit,
-    datelastop: new Date(card.datelastop),
-  }));
+  const rows = cards.map(
+    ({
+      cardOwner,
+      date,
+      cardNumber,
+      walletType,
+      blocked,
+      dayRemain,
+      dayLimit,
+      monthRemain,
+      monthLimit,
+    }) => ({
+      id: cardNumber,
+      cardnum: cardNumber,
+      cardowner: cardOwner,
+      blocked,
+      wallettype: walletType,
+      monthlimit: +monthLimit,
+      monthremain: +monthRemain,
+      daylimit: +dayLimit,
+      dayremain: +dayRemain,
+      datelastop: new Date(date),
+    }),
+  );
 
   if (isIdle) {
     return <Spinner fullscreen />;

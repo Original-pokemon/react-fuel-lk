@@ -12,15 +12,19 @@ import HomeIcon from '@mui/icons-material/Home';
 import CardTable from '#root/components/cards/CardTable/CardTable';
 import CardsList from '#root/components/cards/CardsList/CardsList';
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import { fetchFirmData, getFirmCards, getFirmStatus } from '#root/store';
+import {
+  fetchFirmData,
+  getApiResponseFirmCards,
+  getApiResponseStatus,
+} from '#root/store';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import AppRoute from '#root/const/app-route';
 import CardsStyledBox from './Cards.style';
 
 function Cards() {
   const dispatch = useAppDispatch();
-  const { isIdle, isLoading } = useAppSelector(getFirmStatus);
-  const cards = useAppSelector(getFirmCards);
+  const { isIdle, isLoading } = useAppSelector(getApiResponseStatus);
+  const cards = useAppSelector(getApiResponseFirmCards);
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
   );

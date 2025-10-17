@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid2 as Grid, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { SxProps, Theme } from '@mui/system';
 
 type PageLayoutProperties = {
@@ -35,31 +35,39 @@ function PageLayout({
       {diagrams && <Box mb={2}>{diagrams}</Box>}
 
       {/* Filters and Sorting */}
-      <Grid container pb={2} spacing={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          pb: 2,
+          gap: 2,
+          overflow: 'hidden',
+        }}
+      >
         {/* Filters Section - Vertical Layout */}
         {filters && filters.length > 0 && (
-          <Grid size="auto">
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {filters.map((filter) => (
-                <Box key={filter.key}>{filter}</Box>
-              ))}
-            </Box>
-          </Grid>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {filters.map((filter) => (
+              <Box key={filter.key}>{filter}</Box>
+            ))}
+          </Box>
         )}
 
-        {/* Sorting Section - Vertical Layout */}
+        {/* Sorting Section - Vertical Layout, pinned to bottom right */}
         {sorting && (
-          <Grid
-            size="auto"
-            offset="auto"
-            sx={{ display: 'flex', alignItems: 'flex-end' }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              justifyContent: 'flex-end',
+              marginLeft: 'auto',
+            }}
           >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {sorting}
-            </Box>
-          </Grid>
+            {sorting}
+          </Box>
         )}
-      </Grid>
+      </Box>
 
       {/* Content */}
       <Box>{content}</Box>

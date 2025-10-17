@@ -1,15 +1,18 @@
-import { useEffect } from 'react';
-import { Box, Grid2 as Grid } from '@mui/material';
+import { useEffect, Fragment } from 'react';
+import { Box, Grid2 as Grid, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import {
-  getFirmCards,
-  getFirmInfo,
-  getFirmStatus,
-} from '#root/store/slice/firm/selectors';
 import Spinner from '#root/components/Spinner/Spinner';
-import { fetchFirmData } from '#root/store';
+import {
+  fetchFirmData,
+  getApiResponseFirm,
+  getApiResponseFirmCards,
+  getApiResponseStatus,
+  getNomenclatureInfo,
+  fetchNomenclatureData,
+  getAppStatus,
+} from '#root/store';
 import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
 // import DataListBox from '#root/components/home/DataListBox/DataListBox';
 import KPIBox from '#root/components/home/KPIBox/KPIBox';
@@ -48,25 +51,31 @@ const markers = prepareMarkers(mapInfo);
 function Home() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const firmInfo = useAppSelector(getFirmInfo);
-  const cards = useAppSelector(getFirmCards);
-  // const nomenclature = useAppSelector(getNomenclatureInfo);
+  const firmInfo = useAppSelector(getApiResponseFirm);
+  const cards = useAppSelector(getApiResponseFirmCards);
+  const nomenclature = useAppSelector(getNomenclatureInfo);
 
-  const firmStatus = useAppSelector(getFirmStatus);
-  // const appStatus = useAppSelector(getAppStatus);
+  const apiResponseStatus = useAppSelector(getApiResponseStatus);
+  const { isIdle } = useAppSelector(getAppStatus);
 
-  const isLoaded = firmStatus.isSuccess && firmInfo;
+  const isLoaded = apiResponseStatus.isSuccess && firmInfo;
 
   const totalCards = cards.length;
   const activeCards = cards.filter((c) => !c.blocked).length;
 
   useEffect(() => {
-    if (!firmInfo && firmStatus.isIdle) {
+    if (!firmInfo && apiResponseStatus.isIdle) {
       dispatch(fetchFirmData());
     }
-  }, [dispatch, firmInfo, firmStatus.isIdle]);
+  }, [dispatch, firmInfo, apiResponseStatus.isIdle]);
 
-  if (firmStatus.isLoading) {
+  useEffect(() => {
+    if (!nomenclature && isIdle) {
+      dispatch(fetchNomenclatureData());
+    }
+  }, [nomenclature, dispatch, isIdle]);
+
+  if (apiResponseStatus.isLoading || !nomenclature) {
     return <Spinner fullscreen />;
   }
 
@@ -89,7 +98,7 @@ function Home() {
       mockTransactions.push({
         confirmed: 1,
         dt: date.format('YYYY-MM-DD HH:mm:ss'),
-        firmid: firmInfo?.firmid || 1,
+        firmid: firmInfo?.firmId || 1,
         cardnum: Math.floor(Math.random() * 9999) + 1000,
         op: -1, // Debit operation (expense)
         summa: Math.floor(Math.random() * 5000) + 500, // Random amount between 500-5500 rubles
@@ -108,6 +117,30 @@ function Home() {
   //   { label: 'Карта #5678', value: '1800 л/нед.' },
   // ];
 
+  const cashBalance = firmInfo?.fuelVolumeRemain['1'];
+  const cashOverdraft = firmInfo?.fuelVolumeOverdraft['1'];
+  const fuelData = firmInfo
+    ? Object.entries(firmInfo.fuelVolumeRemain)
+      .filter(([fuelId]) => fuelId !== '1')
+      .map(([fuelId, value]) => {
+        const fuelName =
+          nomenclature.find((nom) => nom.fuelid === +fuelId)?.fuelname ||
+          'Неизвестное топливо';
+
+        const overdraft = firmInfo.fuelVolumeOverdraft[fuelId];
+
+        const displayValue =
+          +overdraft === 0
+            ? +value === 0
+              ? undefined
+              : `${value} литров`
+            : `Перерасход: ${overdraft} литров`;
+
+        return displayValue ? { [fuelName]: displayValue } : undefined;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== undefined)
+    : [];
+
   return (
     isLoaded && (
       <Box sx={{ p: 2 }}>
@@ -119,14 +152,62 @@ function Home() {
             }}
           >
             <DashboardCard title="Ключевые метрики">
-              <KPIBox
+              {cashBalance && cashBalance !== '0' && (
+                <KPIBox
+                  label="Баланс"
+                  value={
+                    cashOverdraft && +cashOverdraft !== 0
+                      ? `Перерасход: ${cashOverdraft} руб.`
+                      : `${cashBalance} руб.`
+                  }
+                />
+              )}
+              {fuelData.length > 0 && (
+                <KPIBox
+                  label="Баланс топлива"
+                  value={
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                      }}
+                    >
+                      {fuelData.map((item) => (
+                        <Box
+                          key={JSON.stringify(item)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          {Object.entries(item).map(([key, value]) => (
+                            <Fragment key={key}>
+                              <Typography
+                                sx={{ fontSize: '14px', fontWeight: 500 }}
+                              >
+                                {key}
+                              </Typography>
+                              <Typography sx={{ fontSize: '18px' }}>
+                                {value}
+                              </Typography>
+                            </Fragment>
+                          ))}
+                        </Box>
+                      ))}
+                    </Box>
+                  }
+                />
+              )}
+              {/* <KPIBox
                 label="Баланс"
-                value={firmInfo.firmcash.conf > 0 ? firmInfo.firmcash.conf : 0}
-              />
-              <KPIBox
+                value={firmInfo.fuelVolumeRemain.conf > 0 ? firmInfo.firmcash. : 0}
+              /> * */}
+              {/* <KPIBox
                 label="Задолженность"
                 value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
-              />
+              /> */}
               {/* <KPIBox
                 label="Транзакций в неделю"
                 value={transactionsKpi.weekCount}

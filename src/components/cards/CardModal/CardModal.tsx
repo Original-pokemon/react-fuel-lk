@@ -2,7 +2,7 @@ import { Typography, Stack, Avatar } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import DataModal from '#root/components/layouts/data-layouts/DataModal/DataModal';
 import FuelChip from '#root/components/FuelChip/FuelChip';
-import { CardType } from '#root/types';
+import { CardInfoType } from '#root/types';
 import LimitCell from '../CardTable/cells/LimitCell/LimitCell';
 import WalletTypeCell from '../CardTable/cells/WalletTypeCell/WalletTypeCell';
 import StatusCell from '../CardTable/cells/StatusCell/StatusCell';
@@ -10,7 +10,7 @@ import InfoBlock from './InfoBlock';
 import { DateCell } from '../CardTable/cells/DateCell/DateCell';
 
 type CardModalProperties = {
-  card: CardType;
+  card: CardInfoType;
 };
 
 function CardModal({ card }: CardModalProperties) {
@@ -48,7 +48,7 @@ function CardModal({ card }: CardModalProperties) {
             variant="rounded"
             src="/images/card.png"
           />
-          <Typography variant="h6">{card.cardnum}</Typography>
+          <Typography variant="h6">{card.cardNumber}</Typography>
         </Stack>
       }
     >
@@ -59,19 +59,19 @@ function CardModal({ card }: CardModalProperties) {
           rows={[
             {
               label: 'Владелец карты',
-              value: <Typography variant="body1">{card.cardowner}</Typography>,
+              value: <Typography variant="body1">{card.cardOwner}</Typography>,
             },
             {
               label: 'Статус',
-              value: <StatusCell value={card.blocked} />,
+              value: <StatusCell value={Boolean(card.blocked)} />,
             },
             {
               label: 'Последняя операция',
-              value: <DateCell value={card.datelastop} />,
+              value: <DateCell value={card.date} />,
             },
             {
               label: 'Тип кошелька',
-              value: <WalletTypeCell value={card.wallettype} />,
+              value: <WalletTypeCell value={card.walletType} />,
             },
           ]}
           direction="row"
@@ -86,13 +86,16 @@ function CardModal({ card }: CardModalProperties) {
             {
               label: 'Дневной лимит',
               value: (
-                <LimitCell limit={card.daylimit} remain={card.dayremain} />
+                <LimitCell limit={+card.dayLimit} remain={+card.dayRemain} />
               ),
             },
             {
               label: 'Месячный лимит',
               value: (
-                <LimitCell limit={card.monthlimit} remain={card.monthremain} />
+                <LimitCell
+                  limit={+card.monthLimit}
+                  remain={+card.monthRemain}
+                />
               ),
             },
           ]}
@@ -105,10 +108,10 @@ function CardModal({ card }: CardModalProperties) {
         <InfoBlock
           title="Доступное топливо"
           rows={
-            card.fuels && card.fuels.length > 0
-              ? card.fuels.map((fuel) => ({
-                label: <FuelChip fuelId={fuel.fuelid} />,
-                value: <Typography variant="body1">{fuel.volume}</Typography>,
+            card.wallets
+              ? Object.entries(card.wallets).map(([key, value]) => ({
+                label: <FuelChip fuelId={+key} />,
+                value: <Typography variant="body1">{value}</Typography>,
               }))
               : [
                 {
