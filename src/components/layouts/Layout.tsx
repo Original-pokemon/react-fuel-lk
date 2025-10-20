@@ -4,6 +4,7 @@ import {
   CreditCard as CreditCardIcon,
   Receipt as ReceiptIcon,
   Map as MapIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { createPortal } from 'react-dom';
@@ -30,6 +31,12 @@ const menu = [
         icon: <HomeIcon />,
       },
       {
+        id: 2,
+        title: 'Контракты',
+        url: AppRoute.Contracts,
+        icon: <DescriptionIcon />,
+      },
+      {
         id: 4,
         title: 'Карта АЗС',
         url: AppRoute.AzsMap,
@@ -47,8 +54,9 @@ const menu = [
         url: AppRoute.Cards,
         icon: <CreditCardIcon />,
       },
+
       {
-        id: 2,
+        id: 3,
         title: 'Транзакции',
         url: AppRoute.Transaction,
         icon: <ReceiptIcon />,

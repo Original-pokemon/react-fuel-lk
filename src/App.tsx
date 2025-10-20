@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import Home from './pages/Home/Home';
 import Transactions from './pages/Transactions/Transactions';
 import Cards from './pages/Cards/Cards';
+import Contracts from './pages/Contracts/Contracts';
 import Login from './pages/Login/Login';
 import AzsMap from './pages/AzsMap/AzsMap';
 import AuthGuard from './components/AuthGuard/AuthGuard';
@@ -45,6 +46,7 @@ function App() {
             {/* <Route path={AppRoute.Profile} element={<Profile />} /> */}
             <Route path={AppRoute.Transaction} element={<Transactions />} />
             <Route path={AppRoute.Cards} element={<Cards />} />
+            <Route path={AppRoute.Contracts} element={<Contracts />} />
             <Route path={AppRoute.Card} element={<Cards />} />
             <Route path={AppRoute.AzsMap} element={<AzsMap />} />
             {/* <Route
