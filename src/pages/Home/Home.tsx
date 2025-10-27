@@ -26,6 +26,7 @@ import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
 import AppRoute from '#root/const/app-route';
 import { useNavigate } from 'react-router-dom';
 // import HomeStyledBox from './Home.style';
+import FuelChip from '#root/components/FuelChip/FuelChip';
 import ODINTSOVO_COORD from '../../const/map';
 import { prepareMarkers } from '../../utils/markers';
 import mapInfo from '../../mock/map-info';
@@ -123,20 +124,25 @@ function Home() {
     ? Object.entries(firmInfo.fuelVolumeRemain)
       .filter(([fuelId]) => fuelId !== '1')
       .map(([fuelId, value]) => {
-        const fuelName =
-          nomenclature.find((nom) => nom.fuelid === +fuelId)?.fuelname ||
-          'Неизвестное топливо';
+          const overdraft = firmInfo.fuelVolumeOverdraft[fuelId];
 
-        const overdraft = firmInfo.fuelVolumeOverdraft[fuelId];
+          const displayValue =
+            +overdraft === 0
+              ? +value === 0
+                ? undefined
+                : `${value} литров`
+              : `Перерасход: ${overdraft} литров`;
 
-        const displayValue =
-          +overdraft === 0
-            ? +value === 0
-              ? undefined
-              : `${value} литров`
-            : `Перерасход: ${overdraft} литров`;
+          return displayValue ? { [fuelId]: displayValue } : undefined;
+        })
+      .filter((item): item is NonNullable<typeof item> => item !== undefined)
+    : [];
+  const virtualFuelData = firmInfo
+    ? Object.entries(firmInfo.virtualCard)
+      .map(([fuelId, value]) => {
+        const displayValue = +value === 0 ? undefined : `${value} литров`;
 
-        return displayValue ? { [fuelName]: displayValue } : undefined;
+        return displayValue ? { [fuelId]: displayValue } : undefined;
       })
       .filter((item): item is NonNullable<typeof item> => item !== undefined)
     : [];
@@ -184,11 +190,41 @@ function Home() {
                         >
                           {Object.entries(item).map(([key, value]) => (
                             <Fragment key={key}>
-                              <Typography
-                                sx={{ fontSize: '14px', fontWeight: 500 }}
-                              >
-                                {key}
+                              <FuelChip fuelId={+key} />
+                              <Typography sx={{ fontSize: '18px' }}>
+                                {value}
                               </Typography>
+                            </Fragment>
+                          ))}
+                        </Box>
+                      ))}
+                    </Box>
+                  }
+                />
+              )}
+              {virtualFuelData.length > 0 && (
+                <KPIBox
+                  label="Зарезервированное топливо"
+                  value={
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                      }}
+                    >
+                      {virtualFuelData.map((item) => (
+                        <Box
+                          key={JSON.stringify(item)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          {Object.entries(item).map(([key, value]) => (
+                            <Fragment key={key}>
+                              <FuelChip fuelId={+key} />
                               <Typography sx={{ fontSize: '18px' }}>
                                 {value}
                               </Typography>

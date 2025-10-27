@@ -10,7 +10,7 @@ const brandColors = {
   ai95p: pantone382C,
   dt: pantone433C,
   sug: pantone288C,
-  ai100p: '#ff0000',
+  ai100p: '#830202ff',
 
   green: {
     main: pantone382C,
