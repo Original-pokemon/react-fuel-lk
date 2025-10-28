@@ -6,7 +6,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import HomeIcon from '@mui/icons-material/Home';
 
 import CardTable from '#root/components/cards/CardTable/CardTable';
@@ -19,6 +19,7 @@ import {
 } from '#root/store';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import Filter from '#root/components/Filter/Filter';
+import SortMenu from '#root/components/SortMenu/SortMenu';
 import type { CardInfoType } from '#root/types/api-response';
 import type { SelectedFiltersType } from '#root/components/Filter/types';
 import AppRoute from '#root/const/app-route';
@@ -71,6 +72,11 @@ const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
 const FILTER_BY_CARD_STATUS_NAME = 'filterByCardStatus';
 const FILTER_BY_WALLET_TYPE_NAME = 'filterByWalletType';
 
+const sortOptions = [
+  { label: 'По умолчанию', value: 'default' },
+  { label: 'По последней транзакции', value: 'lastTransaction' },
+];
+
 function Cards() {
   const dispatch = useAppDispatch();
   const { isIdle, isLoading } = useAppSelector(getApiResponseStatus);
@@ -81,6 +87,7 @@ function Cards() {
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || '';
   const cardStatus = searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'all';
   const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || 'all';
+  const [currentSortOption, setCurrentSortOption] = useState<string>('default');
 
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
@@ -136,9 +143,25 @@ function Cards() {
     [cardNumber, setSearchParameters],
   );
 
+  const handleSortChange = (option: string) => {
+    setCurrentSortOption(option);
+  };
+
   const filteredCards = useMemo(() => {
     return filterCards(allCards, cardStatus, walletType, cardNumber);
   }, [allCards, cardStatus, walletType, cardNumber]);
+
+  const sortedCards = useMemo(() => {
+    const cardsCopy = [...filteredCards];
+    if (currentSortOption === 'lastTransaction') {
+      // Sort by last transaction date (assuming cards have a date field)
+      cardsCopy.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+    }
+    // Default sorting remains as is
+    return cardsCopy;
+  }, [filteredCards, currentSortOption]);
 
   useEffect(() => {
     if (isIdle) {
@@ -190,12 +213,20 @@ function Cards() {
           />
         </Filter>,
       ]}
+      sorting={
+        <SortMenu
+          label="Сортировка"
+          onSortChange={handleSortChange}
+          currentSort={currentSortOption}
+          sortOptions={sortOptions}
+        />
+      }
       content={
         <CardsStyledBox className="cards">
           {isSmallScreen ? (
-            <CardsList cards={filteredCards} isLoading={isLoading} />
+            <CardsList cards={sortedCards} isLoading={isLoading} />
           ) : (
-            <CardTable cards={filteredCards} />
+            <CardTable cards={sortedCards} />
           )}
         </CardsStyledBox>
       }
