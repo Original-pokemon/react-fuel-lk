@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import debounce from '@mui/material/utils/debounce';
 import {
   Box,
   Breadcrumbs,
@@ -104,12 +103,14 @@ function Transitions() {
 
   // filters
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NAME) || undefined;
+  const transactionType =
+    searchParameters.get(FILTER_BY_TRANSACTION_TYPE_NAME) || 'all';
+  const fuelTypeString = searchParameters.get(FILTER_BY_FUEL_TYPE_NAME);
+  const fuelType = fuelTypeString ? fuelTypeString.split(',') : [];
   const [startDate, setStartDate] = useState<Dayjs>(
     dayjs().subtract(6, 'month'),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
-  const [transactionType, setTransactionType] = useState<string>('all');
-  const [fuelType, setFuelType] = useState<string[]>([]);
   const [currentSortOption, setCurrentSortOption] = useState<string>(
     lastTransactionsOption.value,
   );
@@ -133,61 +134,54 @@ function Transitions() {
     }
   };
 
-  const handleCardNumberFilterChange = useMemo(() => {
-    return debounce((value: string) => {
-      const newCardNumber = value.trim();
-
-      setSearchParameters((previous) => {
-        if (newCardNumber) {
-          return { ...previous, filterbycard: newCardNumber };
-        }
-
-        previous.delete('filterbycard');
-        return previous;
-      });
-
-      dispatch(
-        fetchTransactions({
-          firmid: -1,
-          cardnum: Number(newCardNumber) || -1,
-          fromday: startDate.format('YYYY-MM-DD'),
-          day: endDate.format('YYYY-MM-DD'),
-        }),
-      );
-    }, 700);
-  }, [dispatch, setSearchParameters, startDate, endDate]);
-
   const handleApplyFilters = useCallback(
     (selectedFilters: SelectedFiltersType) => {
-      if (selectedFilters[FILTER_BY_CARD_NAME]) {
-        const { options } = selectedFilters[FILTER_BY_CARD_NAME];
-        const { value } = options[0];
+      setSearchParameters((previous) => {
+        const newParameters = new URLSearchParams(previous);
 
-        if (cardNumber !== value) {
-          handleCardNumberFilterChange(value);
+        // Handle card number filter
+        if (selectedFilters[FILTER_BY_CARD_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_CARD_NAME];
+          const { value } = options[0];
+          if (value.trim()) {
+            newParameters.set(FILTER_BY_CARD_NAME, value.trim());
+          } else {
+            newParameters.delete(FILTER_BY_CARD_NAME);
+          }
+        } else if (cardNumber) {
+          newParameters.delete(FILTER_BY_CARD_NAME);
         }
-      }
-      if (!selectedFilters[FILTER_BY_CARD_NAME] && cardNumber) {
-        handleCardNumberFilterChange('');
-      }
 
-      if (selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME]) {
-        setTransactionType(
-          selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME].options[0].value,
-        );
-      } else {
-        setTransactionType('all');
-      }
+        // Handle transaction type filter
+        if (selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME];
+          const { value } = options[0];
+          if (value === 'all') {
+            newParameters.delete(FILTER_BY_TRANSACTION_TYPE_NAME);
+          } else {
+            newParameters.set(FILTER_BY_TRANSACTION_TYPE_NAME, value);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_TRANSACTION_TYPE_NAME);
+        }
 
-      if (selectedFilters[FILTER_BY_FUEL_TYPE_NAME]) {
-        const { options } = selectedFilters[FILTER_BY_FUEL_TYPE_NAME];
-        const valueList = options.map((option) => option.value);
-        setFuelType(valueList);
-      } else {
-        setFuelType([]);
-      }
+        // Handle fuel type filter
+        if (selectedFilters[FILTER_BY_FUEL_TYPE_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_FUEL_TYPE_NAME];
+          const valueList = options.map((option) => option.value);
+          if (valueList.length > 0) {
+            newParameters.set(FILTER_BY_FUEL_TYPE_NAME, valueList.join(','));
+          } else {
+            newParameters.delete(FILTER_BY_FUEL_TYPE_NAME);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_FUEL_TYPE_NAME);
+        }
+
+        return newParameters;
+      });
     },
-    [cardNumber, handleCardNumberFilterChange],
+    [cardNumber, setSearchParameters],
   );
 
   const handleSortChange = (option: string) => {
@@ -296,7 +290,7 @@ function Transitions() {
             />
           ) : (
             <TransactionsTable
-                name={tableName}
+              name={tableName}
               transactions={sortedTransactions}
               isLoading={isLoadingTransactions}
             />
