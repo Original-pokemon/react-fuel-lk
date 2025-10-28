@@ -5,6 +5,7 @@ export const NameSpace = {
   Card: 'card',
   Transaction: 'transaction',
   ApiResponse: 'apiResponse',
+  MapMarkers: 'mapMarkers',
 } as const;
 
 export const Status = {

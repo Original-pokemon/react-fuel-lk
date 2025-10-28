@@ -1,14 +1,28 @@
+import { useEffect, useState, useMemo } from 'react';
+import { useAppDispatch, useAppSelector } from '#root/hooks/state';
+import {
+  fetchMapMarkers,
+  getMapMarkers,
+  getMapMarkersStatus,
+  getNomenclatureInfo,
+} from '#root/store';
+import { Box, Typography, Breadcrumbs, Link } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import { Link as RouterLink } from 'react-router-dom';
+import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
+import Filter from '#root/components/Filter/Filter';
 import Map from '../../components/Map/Map';
 import ODINTSOVO_COORD from '../../const/map';
-import { prepareMarkers } from '../../utils/markers';
-import mapInfo from '../../mock/map-info';
+import AppRoute from '../../const/app-route';
 
-// const center: LatLngExpression = [51.505, -0.09];
-// const rectangle = [
-//   [51.49, -0.08],
-//   [51.5, -0.06],
-// ];
 function AzsMap() {
+  const dispatch = useAppDispatch();
+  const mapMarkers = useAppSelector(getMapMarkers);
+  const { isLoading } = useAppSelector(getMapMarkersStatus);
+  const nomenclature = useAppSelector(getNomenclatureInfo);
+
+  const [selectedFilters, setSelectedFilters] = useState<any>({});
+
   const mapConfig = {
     center: ODINTSOVO_COORD,
     keyboard: true,
@@ -21,52 +35,180 @@ function AzsMap() {
     style: { height: '100%' },
   };
 
-  // const ai92FilteredMarkers = filterFeaturesByOption(mapInfo, "ai92");
-  // const ai95FilteredMarkers = filterFeaturesByOption(mapInfo, "ai95");
-  // const ai95pFilteredMarkers = filterFeaturesByOption(mapInfo, "ai95p");
-  // const ai100pFilteredMarkers = filterFeaturesByOption(mapInfo, "ai100p");
-  // const dtFilteredMarkers = filterFeaturesByOption(mapInfo, "dt");
-  // const sugFilteredMarkers = filterFeaturesByOption(mapInfo, "sug");
-  // const shopFilteredMarkers = filterFeaturesByOption(mapInfo, "shop");
+  useEffect(() => {
+    if (!mapMarkers && !isLoading) {
+      dispatch(fetchMapMarkers());
+    }
+  }, [dispatch, mapMarkers, isLoading]);
 
-  const markers = prepareMarkers(mapInfo, true);
+  const handleFilterChange = (filters: any) => {
+    setSelectedFilters(filters);
+  };
+
+  const filteredMarkers = useMemo(() => {
+    if (!mapMarkers) return [];
+
+    const selectedFuelKeys =
+      selectedFilters.fuelType?.options.map((opt) => opt.value) || [];
+    const showShopsOnly =
+      selectedFilters.showShops?.options.some((opt) => opt.value === 'true') ||
+      false;
+
+    return mapMarkers.features
+      .filter((feature: any) => {
+        const { options } = feature;
+
+        // Check fuel filters
+        const hasSelectedFuel =
+          selectedFuelKeys.length === 0 ||
+          selectedFuelKeys.some(
+            (fuel: string) => options[fuel] && options[fuel] !== '0',
+          );
+
+        // Check shop filter
+        const hasShop = !showShopsOnly || options.shop === '1';
+
+        return hasSelectedFuel && hasShop;
+      })
+      .map((feature: any) => {
+        const { coordinates } = feature.geometry;
+        const { balloonContent } = feature.properties;
+        const { id, ...options } = feature.options;
+
+        // Create rich popup content with fuel prices
+        const fuelPrices = Object.entries(options)
+          .filter(([key, value]) => key !== 'shop' && value && value !== '0')
+          .map(([fuel, price]) => {
+            // Map fuel codes to fuel IDs used in FuelChip component
+            const fuelIdMap: Record<string, number> = {
+              ai92: 14, // АИ-92
+              ai95: 15, // АИ-95
+              ai95p: 19, // АИ-95 PROFIT
+              ai100p: 21, // АИ-100 PROFIT
+              dt: 17, // ДТ
+              sug: 18, // Газ
+            };
+            const fuelId = fuelIdMap[fuel] || 0;
+
+            // Get fuel name from nomenclature
+            const fuelInfo = nomenclature?.find(
+              (item) => item.fuelid === fuelId,
+            );
+            const fuelName = fuelInfo ? fuelInfo.fuelname : fuel.toUpperCase();
+
+            // Get fuel color from theme (simplified mapping)
+            const fuelColorMap: Record<number, string> = {
+              14: '#4CAF50', // АИ-92 - green
+              15: '#2196F3', // АИ-95 - blue
+              17: '#FF9800', // ДТ - orange
+              18: '#9C27B0', // Газ - purple
+              19: '#F44336', // АИ-95 PROFIT - red
+              21: '#607D8B', // АИ-100 PROFIT - blue-grey
+            };
+            const fuelColor = fuelColorMap[fuelId] || '#CCCCCC';
+
+            return `<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+              <span style="background-color: ${fuelColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold;">${fuelName}</span>
+              <span style="font-weight: bold;">${price} ₽</span>
+            </div>`;
+          })
+          .join('');
+
+        const popupContentRich = `
+          <div style="font-family: Arial, sans-serif; max-width: 250px; line-height: 1.4;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: #1976d2;">
+              ${balloonContent}
+            </div>
+            ${
+              fuelPrices
+                ? `
+              <div style="margin-bottom: 8px;">
+                <strong style="color: #333;">Цены на топливо:</strong><br/>
+                ${fuelPrices}
+              </div>
+            `
+                : ''
+            }
+            ${options.shop === '1' ? '<div style="color: #4caf50;">🏪 Есть магазин</div>' : ''}
+          </div>
+        `;
+
+        return {
+          position: coordinates,
+          popupContent: popupContentRich,
+          id,
+          ...options,
+        };
+      });
+  }, [mapMarkers, selectedFilters, nomenclature]);
+
+  const fuelOptions = useMemo(() => {
+    if (!nomenclature) return [];
+
+    // Map fuel codes to fuel IDs and get names from nomenclature
+    const fuelCodeToId: Record<string, number> = {
+      ai92: 14, // АИ-92
+      ai95: 15, // АИ-95
+      ai95p: 19, // АИ-95 PROFIT
+      ai100p: 21, // АИ-100 PROFIT
+      dt: 17, // ДТ
+      sug: 18, // Газ
+    };
+
+    return Object.entries(fuelCodeToId).map(([key, fuelId]) => {
+      const fuelInfo = nomenclature.find((item) => item.fuelid === fuelId);
+      return {
+        label: fuelInfo ? fuelInfo.fuelname : key.toUpperCase(),
+        value: key,
+      };
+    });
+  }, [nomenclature]);
+
   return (
-    <div className="azs-map" style={{ height: '100%' }}>
-      <Map mapConfig={mapConfig} markers={markers} />
-      {/* <MapContainer center={center} zoom={13} scrollWheelZoom={false} style={{ height: "100%" }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <LayersControl position="topright">
-            <LayersControl.Overlay name="Marker with popup">
-              <Marker position={center}>
-                <Popup>
-                  A pretty CSS3 popup. <br /> Easily customizable.
-                </Popup>
-              </Marker>
-            </LayersControl.Overlay>
-            <LayersControl.Overlay checked name="Layer group with circles">
-              <LayerGroup>
-                <Circle
-                  center={center}
-                  pathOptions={{ fillColor: 'blue' }}
-                  radius={200} />
-                <Circle
-                  center={center}
-                  pathOptions={{ fillColor: 'red' }}
-                  radius={100}
-                  stroke={false} />
-                <LayerGroup>
-                  <Circle
-                    center={[51.51, -0.08]}
-                    pathOptions={{ color: 'green', fillColor: 'green' }}
-                    radius={100} />
-                </LayerGroup>
-              </LayerGroup>
-            </LayersControl.Overlay>
-          </LayersControl>
-        </MapContainer> */}
-    </div>
+    <PageLayout
+      title="Карта АЗС"
+      breadcrumbs={
+        <Breadcrumbs
+          aria-label="breadcrumb"
+          sx={{ mb: 2 }}
+          color="primary.light"
+        >
+          <Link
+            underline="hover"
+            color="inherit"
+            component={RouterLink}
+            to={AppRoute.Main}
+          >
+            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+            Главная
+          </Link>
+          <Typography color="text.primary">Карта АЗС</Typography>
+        </Breadcrumbs>
+      }
+      filters={[
+        <Filter key="filters" onChange={handleFilterChange}>
+          <Filter.MultipleChoice
+            id="fuelType"
+            title="Тип топлива"
+            options={fuelOptions}
+          />
+          <Filter.SingleChoice
+            id="showShops"
+            title="Магазины"
+            defaultValue="false"
+            options={[
+              { label: 'С магазинами', value: 'true' },
+              { label: 'Все', value: 'false' },
+            ]}
+          />
+        </Filter>,
+      ]}
+      content={
+        <Box sx={{ height: '70vh' }}>
+          <Map mapConfig={mapConfig} markers={filteredMarkers} />
+        </Box>
+      }
+    />
   );
 }
 
