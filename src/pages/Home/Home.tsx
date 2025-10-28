@@ -34,6 +34,8 @@ import { prepareMarkers } from '../../utils/markers';
 import mapInfo from '../../mock/map-info';
 import Map from '../../components/Map/Map';
 
+const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
+
 const mapConfig = {
   center: ODINTSOVO_COORD,
   keyboard: false,
@@ -253,6 +255,11 @@ function Home() {
                   combinedLowBalanceCards.map((card) => (
                     <Box
                       key={card.cardNumber}
+                      onClick={() =>
+                        navigate(
+                          `${AppRoute.Cards}?${FILTER_BY_CARD_NUMBER_NAME}=${card.cardNumber}`,
+                        )
+                      }
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -261,6 +268,10 @@ function Home() {
                         border: '1px solid',
                         borderColor: 'divider',
                         borderRadius: 1,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                        },
                       }}
                     >
                       <Box
