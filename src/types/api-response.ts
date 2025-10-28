@@ -203,6 +203,7 @@ export type FirmDataType = {
   cardFuelVolumeOverdraft: FuelVolumeType;
   fuelVolumeOverdraft: VirtualCardBalanceType;
   version: string | null;
+  total: VirtualCardBalanceType;
 };
 
 /**

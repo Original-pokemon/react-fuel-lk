@@ -1,5 +1,5 @@
 import { useEffect, Fragment } from 'react';
-import { Box, Grid2 as Grid, Typography } from '@mui/material';
+import { Box, Grid2 as Grid, Typography, Button } from '@mui/material';
 import dayjs from 'dayjs';
 
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
@@ -12,6 +12,8 @@ import {
   getNomenclatureInfo,
   fetchNomenclatureData,
   getAppStatus,
+  fetchTransactions,
+  getAllTransactions,
 } from '#root/store';
 import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
 // import DataListBox from '#root/components/home/DataListBox/DataListBox';
@@ -21,8 +23,8 @@ import KPIBox from '#root/components/home/KPIBox/KPIBox';
 //   FuelBalanceCard,
 //   ExpenseDynamicsChartCard, // Import the new component
 // } from '#root/components/home/boxes/boxex';
-import type { TransactionType } from '#root/types';
 import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
+import CardAvatar from '#root/components/CardAvatar/CardAvatar';
 import AppRoute from '#root/const/app-route';
 import { useNavigate } from 'react-router-dom';
 // import HomeStyledBox from './Home.style';
@@ -55,6 +57,7 @@ function Home() {
   const firmInfo = useAppSelector(getApiResponseFirm);
   const cards = useAppSelector(getApiResponseFirmCards);
   const nomenclature = useAppSelector(getNomenclatureInfo);
+  const transactions = useAppSelector(getAllTransactions);
 
   const apiResponseStatus = useAppSelector(getApiResponseStatus);
   const { isIdle } = useAppSelector(getAppStatus);
@@ -63,6 +66,61 @@ function Home() {
 
   const totalCards = cards.length;
   const activeCards = cards.filter((c) => !c.blocked).length;
+
+  // Get up to 5 cards with low balance (minimum fuel volume less than 50 liters)
+  const lowBalanceCards = cards
+    .filter((card) => !card.blocked && card.walletType !== 2)
+    .map((card) => {
+      const fuelBalances = Object.entries(card.wallets).map(
+        ([fuelId, volume]) => ({
+          fuelId: +fuelId,
+          volume: +volume,
+        }),
+      );
+
+      return {
+        ...card,
+        fuelBalances,
+        totalBalance:
+          fuelBalances.length > 0
+            ? Math.min(...fuelBalances.map((f) => f.volume))
+            : 0,
+      };
+    })
+    .filter((card) => card.totalBalance < 50)
+    .sort((a, b) => a.totalBalance - b.totalBalance) // Sort by lowest balance first
+    .slice(0, 5);
+
+  // Get up to 5 cards with walletType 1 and low monthRemain
+  const lowMonthRemainCards = cards
+    .filter((card) => !card.blocked && card.walletType === 2)
+    .map((card) => {
+      const fuelBalances = [
+        {
+          fuelId: 0, // Use 0 as a placeholder since monthRemain is a single value
+          volume: +card.monthRemain,
+        },
+      ];
+
+      return {
+        ...card,
+        fuelBalances,
+        totalBalance: +card.monthRemain,
+      };
+    })
+    .sort((a, b) => a.totalBalance - b.totalBalance) // Sort by lowest balance first
+    .slice(0, 5);
+
+  // Combine both lists and remove duplicates
+  const combinedLowBalanceCards = [
+    ...lowBalanceCards,
+    ...lowMonthRemainCards.filter(
+      (monthCard) =>
+        !lowBalanceCards.some(
+          (balanceCard) => balanceCard.cardNumber === monthCard.cardNumber,
+        ),
+    ),
+  ].slice(0, 5);
 
   useEffect(() => {
     if (!firmInfo && apiResponseStatus.isIdle) {
@@ -76,6 +134,19 @@ function Home() {
     }
   }, [nomenclature, dispatch, isIdle]);
 
+  useEffect(() => {
+    if (firmInfo && transactions.length === 0) {
+      dispatch(
+        fetchTransactions({
+          firmid: firmInfo.firmId,
+          cardnum: -1,
+          fromday: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+          day: dayjs().format('YYYY-MM-DD'),
+        }),
+      );
+    }
+  }, [firmInfo, transactions.length, dispatch]);
+
   if (apiResponseStatus.isLoading || !nomenclature) {
     return <Spinner fullscreen />;
   }
@@ -86,30 +157,8 @@ function Home() {
   //   totalSpent: 15_000,
   // };
 
-  // Generate mock transaction data for the last 30 days
-  const mockTransactions: TransactionType[] = [];
-  const today = dayjs();
-
-  for (let dayIndex = 0; dayIndex < 30; dayIndex += 1) {
-    const date = today.subtract(dayIndex, 'day');
-    // Generate 1-5 random transactions per day
-    const transactionsPerDay = Math.floor(Math.random() * 5) + 1;
-
-    for (let txIndex = 0; txIndex < transactionsPerDay; txIndex += 1) {
-      mockTransactions.push({
-        confirmed: 1,
-        dt: date.format('YYYY-MM-DD HH:mm:ss'),
-        firmid: firmInfo?.firmId || 1,
-        cardnum: Math.floor(Math.random() * 9999) + 1000,
-        op: -1, // Debit operation (expense)
-        summa: Math.floor(Math.random() * 5000) + 500, // Random amount between 500-5500 rubles
-        volume: Math.floor(Math.random() * 50) + 10, // Random volume between 10-60 liters
-        fuelid: Math.floor(Math.random() * 3) + 1, // Random fuel type 1-3
-        azs: Math.floor(Math.random() * 100) + 1,
-        price: 50 + Math.random() * 20, // Random price between 50-70 rubles per liter
-      });
-    }
-  }
+  // Get the latest 5 transactions
+  const latestTransactions = transactions.slice(0, 5);
 
   // Removed hardcoded fuelData
 
@@ -118,12 +167,12 @@ function Home() {
   //   { label: 'Карта #5678', value: '1800 л/нед.' },
   // ];
 
-  const cashBalance = firmInfo?.fuelVolumeRemain['1'];
+  const cashBalance = firmInfo?.total['1'];
   const cashOverdraft = firmInfo?.fuelVolumeOverdraft['1'];
   const fuelData = firmInfo
     ? Object.entries(firmInfo.fuelVolumeRemain)
-      .filter(([fuelId]) => fuelId !== '1')
-      .map(([fuelId, value]) => {
+        .filter(([fuelId]) => fuelId !== '1')
+        .map(([fuelId, value]) => {
           const overdraft = firmInfo.fuelVolumeOverdraft[fuelId];
 
           const displayValue =
@@ -135,28 +184,15 @@ function Home() {
 
           return displayValue ? { [fuelId]: displayValue } : undefined;
         })
-      .filter((item): item is NonNullable<typeof item> => item !== undefined)
-    : [];
-  const virtualFuelData = firmInfo
-    ? Object.entries(firmInfo.virtualCard)
-      .map(([fuelId, value]) => {
-        const displayValue = +value === 0 ? undefined : `${value} литров`;
-
-        return displayValue ? { [fuelId]: displayValue } : undefined;
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== undefined)
+        .filter((item): item is NonNullable<typeof item> => item !== undefined)
     : [];
 
   return (
     isLoaded && (
-      <Box sx={{ p: 2 }}>
-        <Grid container spacing={2}>
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
+      <Box sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Row 1: Key Metrics */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <DashboardCard title="Ключевые метрики">
               {cashBalance && cashBalance !== '0' && (
                 <KPIBox
@@ -202,52 +238,6 @@ function Home() {
                   }
                 />
               )}
-              {virtualFuelData.length > 0 && (
-                <KPIBox
-                  label="Зарезервированное топливо"
-                  value={
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1,
-                      }}
-                    >
-                      {virtualFuelData.map((item) => (
-                        <Box
-                          key={JSON.stringify(item)}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          {Object.entries(item).map(([key, value]) => (
-                            <Fragment key={key}>
-                              <FuelChip fuelId={+key} />
-                              <Typography sx={{ fontSize: '18px' }}>
-                                {value}
-                              </Typography>
-                            </Fragment>
-                          ))}
-                        </Box>
-                      ))}
-                    </Box>
-                  }
-                />
-              )}
-              {/* <KPIBox
-                label="Баланс"
-                value={firmInfo.fuelVolumeRemain.conf > 0 ? firmInfo.firmcash. : 0}
-              /> * */}
-              {/* <KPIBox
-                label="Задолженность"
-                value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
-              /> */}
-              {/* <KPIBox
-                label="Транзакций в неделю"
-                value={transactionsKpi.weekCount}
-              /> */}
               <KPIBox
                 label="Активные карты (активно /всего)"
                 value={`${activeCards} / ${totalCards}`}
@@ -255,43 +245,208 @@ function Home() {
             </DashboardCard>
           </Grid>
 
-          {/* <Grid size={{ xs: 12, md: 6 }}>
-            <ExpenseDynamicsChartCard transactions={mockTransactions} />
-          </Grid> */}
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ContactsBox />
+          {/* Row 2: Cards with Low Balance */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <DashboardCard title="Карты с низким балансом">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {combinedLowBalanceCards.length > 0 ? (
+                  combinedLowBalanceCards.map((card) => (
+                    <Box
+                      key={card.cardNumber}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        <CardAvatar cardnum={card.cardNumber} />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 0.5,
+                        }}
+                      >
+                        {card.walletType === 2 ? (
+                          <Typography variant="body2">
+                            {card.totalBalance} л
+                          </Typography>
+                        ) : (
+                          card.fuelBalances.map((fuel) => (
+                            <Box
+                              key={fuel.fuelId}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              <FuelChip fuelId={fuel.fuelId} />
+                              <Typography variant="body2">
+                                {fuel.volume} л
+                              </Typography>
+                            </Box>
+                          ))
+                        )}
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: 'center', py: 2 }}
+                  >
+                    Нет карт с низким балансом
+                  </Typography>
+                )}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate(AppRoute.Cards)}
+                    sx={{ px: 2, py: 0.5, borderRadius: 2 }}
+                  >
+                    Все карты
+                  </Button>
+                </Box>
+              </Box>
+            </DashboardCard>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }} />
+          {/* Row 3: Latest Transactions */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <DashboardCard title="Последние транзакции">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {latestTransactions.length > 0 ? (
+                  latestTransactions.map((transaction) => (
+                    <Box
+                      key={`${transaction.dt}-${transaction.cardnum}-${transaction.op}`}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        p: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                      }}
+                    >
+                      {/* Header */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 1,
+                        }}
+                      >
+                        <CardAvatar cardnum={transaction.cardnum} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant="body2">
+                            АЗС-{transaction.azs}
+                          </Typography>
+                          <Typography variant="caption" color="text.default">
+                            {dayjs(transaction.dt).format(
+                              'DD.MM.YYYY HH:mm:ss',
+                            )}
+                          </Typography>
+                        </Box>
+                      </Box>
 
-          {/* <Grid size={{ xs: 12, md: 4 }}>
-            {appStatus.isSuccess && (
-              <FuelBalanceCard
-                fuelWallet={firmInfo.firmwallet}
-                nomenclature={nomenclature || []}
-              />
-            )}
-          </Grid> */}
+                      {/* Body */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          minWidth: 'fit-content',
+                        }}
+                      >
+                        {/* Fuel */}
+                        <Box>
+                          <FuelChip fuelId={transaction.fuelid} />
+                        </Box>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+                        {/* Volume */}
+                        <Box>
+                          <Typography variant="caption" color="text.default">
+                            Объем:
+                          </Typography>
+                          <Typography variant="body2">
+                            {transaction.volume} л
+                          </Typography>
+                        </Box>
+
+                        {/* Amount */}
+                        <Box>
+                          <Typography variant="caption" color="text.default">
+                            {transaction.op === -1 ? 'Списание' : 'Пополнение'}
+                          </Typography>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              color: transaction.op === -1 ? 'red' : 'green',
+                            }}
+                          >
+                            {transaction.summa.toFixed(2)} ₽
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: 'center', py: 2 }}
+                  >
+                    Нет транзакций
+                  </Typography>
+                )}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate(AppRoute.Transaction)}
+                    sx={{ px: 2, py: 0.5, borderRadius: 2 }}
+                  >
+                    Все транзакции
+                  </Button>
+                </Box>
+              </Box>
+            </DashboardCard>
+          </Grid>
+
+          {/* Row 4: Map */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <Box
               onClick={() => {
                 navigate(AppRoute.AzsMap);
               }}
+              sx={{
+                height: '100%',
+                minHeight: '300px',
+                cursor: 'pointer',
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
             >
               <Map mapConfig={{ ...mapConfig }} markers={markers} />
             </Box>
-            {/* <DashboardCard title="Самые используемые карты">
-              <DataListBox items={topUsedCards} />
-            </DashboardCard> */}
           </Grid>
 
-          {/* <Grid size={{ xs: 12, md: 6 }}>
-            <DashboardCard title="Карты с низким лимитом">
-              <NearingLimitCardsCard cards={cards} threshold={90} />
-            </DashboardCard>
-          </Grid> */}
+          {/* Row 5: Contacts */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <ContactsBox />
+          </Grid>
         </Grid>
       </Box>
     )
