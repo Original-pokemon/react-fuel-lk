@@ -47,10 +47,20 @@ const apiResponseDataSlice = createSlice({
       })
       .addCase(fetchApiResponseData.fulfilled, (state, action) => {
         state.status = Status.Success;
-        state.data = action.payload;
+        // Store only essential data, remove unnecessary fields
+        const {
+          firms,
+          blocked,
+          noRemains,
+          remains,
+          workingCards,
+          ...essentialData
+        } = action.payload;
+        state.data = essentialData as ApiResponseType;
         state.fuelnames = action.payload.fuelNames;
         state.pricetypes = action.payload.priceTypes;
-        state.firm = action.payload.firms.find(
+        const { firms: firmsData } = action.payload;
+        state.firm = firmsData.find(
           (f: FirmDataType) => f.firmId === action.meta.arg,
         );
         state.cards = apiResponseCardsAdapter.setAll(

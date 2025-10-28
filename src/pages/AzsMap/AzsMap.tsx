@@ -11,6 +11,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import { Link as RouterLink } from 'react-router-dom';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import Filter from '#root/components/Filter/Filter';
+import type { SelectedFiltersType } from '#root/components/Filter/types';
+import type { MapMarkerFeatureType } from '#root/types/azs-map';
 import Map from '../../components/Map/Map';
 import ODINTSOVO_COORD from '../../const/map';
 import AppRoute from '../../const/app-route';
@@ -21,7 +23,9 @@ function AzsMap() {
   const { isLoading } = useAppSelector(getMapMarkersStatus);
   const nomenclature = useAppSelector(getNomenclatureInfo);
 
-  const [selectedFilters, setSelectedFilters] = useState<any>({});
+  const [selectedFilters, setSelectedFilters] = useState<SelectedFiltersType>(
+    {},
+  );
 
   const mapConfig = {
     center: ODINTSOVO_COORD,
@@ -41,7 +45,7 @@ function AzsMap() {
     }
   }, [dispatch, mapMarkers, isLoading]);
 
-  const handleFilterChange = (filters: any) => {
+  const handleFilterChange = (filters: SelectedFiltersType) => {
     setSelectedFilters(filters);
   };
 
@@ -49,13 +53,16 @@ function AzsMap() {
     if (!mapMarkers) return [];
 
     const selectedFuelKeys =
-      selectedFilters.fuelType?.options.map((opt) => opt.value) || [];
+      selectedFilters.fuelType?.options.map(
+        (opt: { value: string }) => opt.value,
+      ) || [];
     const showShopsOnly =
-      selectedFilters.showShops?.options.some((opt) => opt.value === 'true') ||
-      false;
+      selectedFilters.showShops?.options.some(
+        (opt: { value: string }) => opt.value === 'true',
+      ) || false;
 
     return mapMarkers.features
-      .filter((feature: any) => {
+      .filter((feature: MapMarkerFeatureType) => {
         const { options } = feature;
 
         // Check fuel filters
@@ -70,7 +77,7 @@ function AzsMap() {
 
         return hasSelectedFuel && hasShop;
       })
-      .map((feature: any) => {
+      .map((feature: MapMarkerFeatureType) => {
         const { coordinates } = feature.geometry;
         const { balloonContent } = feature.properties;
         const { id, ...options } = feature.options;

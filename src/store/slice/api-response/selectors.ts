@@ -19,8 +19,10 @@ export const getApiResponseStatus = createSelector(
   }),
 );
 
-export const getApiResponseData = (state: ApiResponseStateType) =>
-  state[NameSpace.ApiResponse].data;
+export const getApiResponseData = createSelector(
+  (state: ApiResponseStateType) => state[NameSpace.ApiResponse].data,
+  (data) => data,
+);
 
 export const getApiResponseFirm = (state: ApiResponseStateType) =>
   state[NameSpace.ApiResponse].firm;

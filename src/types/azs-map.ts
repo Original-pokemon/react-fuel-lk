@@ -25,6 +25,7 @@ export type MapMarkerOptionsType = {
   dt?: string;
   sug?: string;
   shop: string;
+  [key: string]: string | undefined;
 };
 
 /**
