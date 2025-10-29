@@ -1,20 +1,31 @@
 import { GridColDef } from '@mui/x-data-grid';
+import { getContrastRatio } from '@mui/material';
 import { formatNumberWithSpaces } from '#root/utils/format-number';
 import type { BalancesType, BalanceType } from '#root/types/api-response';
+import theme from '#root/styles/theme';
 
-// Fuel name mapping based on fuel IDs
-const fuelNameMap: Record<number, string> = {
-  14: 'АИ-92',
-  15: 'АИ-95',
-  19: 'АИ-95 PROF',
-  21: 'АИ-100 PROF',
-  17: 'ДТ',
-  18: 'ГАЗ',
+// Fuel name and color mapping based on fuel IDs
+const fuelConfigMap: Record<number, { name: string; color: string }> = {
+  14: { name: 'АИ-92', color: theme.palette.fuelColors[14] },
+  15: { name: 'АИ-95', color: theme.palette.fuelColors[15] },
+  19: { name: 'АИ-95 PROF', color: theme.palette.fuelColors[19] },
+  21: { name: 'АИ-100 PROF', color: theme.palette.fuelColors[21] },
+  17: { name: 'ДТ', color: theme.palette.fuelColors[17] },
+  18: { name: 'ГАЗ', color: theme.palette.fuelColors[18] },
 };
 
-// Helper function to get fuel name
-const getFuelName = (fuelId: number) => {
-  return fuelNameMap[fuelId] || `Fuel ${fuelId}`;
+// Helper function to get fuel config with proper text color
+const getFuelConfig = (fuelId: number) => {
+  const config = fuelConfigMap[fuelId] || {
+    name: `Fuel ${fuelId}`,
+    color: '#666',
+  };
+  const textColor =
+    getContrastRatio(config.color, theme.palette.common.black) > 4.5
+      ? theme.palette.text.primary
+      : theme.palette.text.secondary;
+
+  return { ...config, textColor };
 };
 
 const ContractColumns: GridColDef[] = [
@@ -90,7 +101,7 @@ const ContractColumns: GridColDef[] = [
       const fuelList = Object.values(balances as BalancesType)
         .flatMap((balance) => Object.values(balance))
         .map((balanceInfo: BalanceType) => {
-          const fuelName = getFuelName(balanceInfo.fuelId);
+          const fuelConfig = getFuelConfig(balanceInfo.fuelId);
           const pcc =
             parameters.row.priceType === 33
               ? `[${balanceInfo.initialPrice}]`
@@ -106,18 +117,42 @@ const ContractColumns: GridColDef[] = [
           );
 
           if (liters > 0.01) {
-            return `<b>${fuelName}${pcc}</b> ${liters.toFixed(2)}л. ${rubles.toFixed(2)}руб.`;
+            return `<span style="background-color: ${fuelConfig.color}; color: ${fuelConfig.textColor}; padding: 2px 6px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 4px;">${fuelConfig.name}${pcc}</span><br/><span style="margin-left: 8px;">${formatNumberWithSpaces(Number(liters.toFixed(2)))} л.</span><br/><span style="margin-left: 8px;">${formatNumberWithSpaces(Number(rubles.toFixed(2)))} руб.</span>`;
           }
           if (overdraftLiters < -0.01) {
-            return `<b>${fuelName}${pcc}</b> -${Math.abs(overdraftLiters).toFixed(2)}л. -${Math.abs(Number.parseFloat(balanceInfo.overdraftRubles)).toFixed(2)}руб.`;
+            return `<span style="background-color: ${fuelConfig.color}; color: ${fuelConfig.textColor}; padding: 2px 6px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 4px;">${fuelConfig.name}${pcc}</span><br/><span style="margin-left: 8px; color: #d32f2f;">-${formatNumberWithSpaces(Math.abs(Number(overdraftLiters.toFixed(2))))} л.</span><br/><span style="margin-left: 8px; color: #d32f2f;">-${formatNumberWithSpaces(Math.abs(Number(Number.parseFloat(balanceInfo.overdraftRubles).toFixed(2))))} руб.</span>`;
           }
         })
         .filter(Boolean);
 
       return fuelList.length > 0 ? (
-        <div dangerouslySetInnerHTML={{ __html: fuelList.join('<br>') }} />
+        <table
+          style={{
+            borderCollapse: 'collapse',
+            fontSize: '0.875rem',
+            lineHeight: '1.4',
+          }}
+        >
+          <tbody>
+            {fuelList.map((fuel, index) => (
+              <tr key={`fuel-${index}`}>
+                <td
+                  style={{
+                    padding: '2px 4px',
+                    borderTop: index === 0 ? 'none' : '1px solid #e0e0e0',
+                    borderBottom:
+                      index === fuelList.length - 1
+                        ? 'none'
+                        : '1px solid #e0e0e0',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: fuel! }}
+                />
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
-        '-'
+        <span style={{ color: '#666', fontStyle: 'italic' }}>-</span>
       );
     },
   },
