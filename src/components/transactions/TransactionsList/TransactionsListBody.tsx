@@ -2,6 +2,7 @@ import { Grid2, Typography } from '@mui/material';
 import { green, red } from '@mui/material/colors';
 import FuelChip from '#root/components/FuelChip/FuelChip';
 import { TransactionType } from '#root/types';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 
 type TransactionBodyProperties = {
   transaction: TransactionType;
@@ -40,7 +41,7 @@ function TransactionBody({
           {transactionType}
         </Typography>
         <Typography variant="subtitle2" sx={{ color: transactionColor }}>
-          {summa.toFixed(2)} ₽
+          {formatNumberWithSpaces(Number(summa.toFixed(2)))} ₽
         </Typography>
       </Grid2>
     </Grid2>

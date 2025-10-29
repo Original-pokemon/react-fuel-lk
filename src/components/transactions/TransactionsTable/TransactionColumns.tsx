@@ -1,5 +1,6 @@
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { green, red } from '@mui/material/colors';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 import FuelChip from '../../FuelChip/FuelChip';
 
 const FuelName = {
@@ -26,7 +27,7 @@ const transactionColumns: GridColDef[] = [
       Number(value).toFixed(2).replace('.', ',').replace('-', ''),
     renderCell: (parameters: GridRenderCellParams) => (
       <span style={{ color: parameters.row.op === -1 ? red[500] : green[500] }}>
-        {parameters.value}
+        {formatNumberWithSpaces(Number(parameters.value))}
       </span>
     ),
   },
@@ -36,6 +37,9 @@ const transactionColumns: GridColDef[] = [
     width: 100,
     valueFormatter: (value: string) =>
       Number(value).toFixed(2).replace('.', ','),
+    renderCell: (parameters: GridRenderCellParams) => (
+      <span>{formatNumberWithSpaces(Number(parameters.value))}</span>
+    ),
   },
   {
     field: 'fuelid',
@@ -52,6 +56,9 @@ const transactionColumns: GridColDef[] = [
     width: 100,
     valueFormatter: (value: string) =>
       Number(value).toFixed(2).replace('.', ','),
+    renderCell: (parameters: GridRenderCellParams) => (
+      <span>{formatNumberWithSpaces(Number(parameters.value))}</span>
+    ),
   },
   {
     field: 'op',

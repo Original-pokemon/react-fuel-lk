@@ -93,7 +93,37 @@ const fieldMappings: Record<string, string> = {
   fuelings: 'fuelings',
   overdraft: 'overdraft',
 
-  // Balance fields (same as in contract, so omitted to avoid duplicates)
+  // Balance fields
+  ЦенаИсх: 'initialPrice',
+  ЦенаНаАЗСПоследняя: 'lastStationPrice',
+  ЦенаРеальнаяПоследняя: 'lastRealPrice',
+  ОбъемИсходный: 'initialVolume',
+  ОбъемКонтролируемый_Х: 'controlledVolume',
+  РасходОбъемаДо_М: 'volumeSpentBefore',
+  РасходОбъемаОпер_М: 'operationalVolumeSpent',
+  ОстатокОбъемаДо_Х: 'volumeRemainBefore',
+  ОстатокОбъемаДо_П_Х: 'volumeRemainBeforeWithCredit',
+  ОстатокОбъемаДо_М: 'volumeRemainBeforeOperational',
+  ОстатокОбъема_Х: 'volumeRemain',
+  МожемПотратитьЛитровПоОбъему_П_Х: 'canSpendLitersByVolumeWithCredit',
+  ПерерасходЛитровПоОбъему_М: 'overdraftLitersByVolume',
+  СуммаИсходнаяБаланс: 'initialAmountBalance',
+  СуммаКонтролируемая_ХБаланс: 'controlledAmountBalance',
+  ОстатокСуммыДоБаланс: 'amountRemainBeforeBalance',
+  РасходСуммыДо_МБаланс: 'amountSpentBeforeBalance',
+  РасходСуммыОпер_МБаланс: 'operationalAmountSpentBalance',
+  ОстатокСуммыДо_ХБаланс: 'amountRemainBeforeControlledBalance',
+  ОстатокСуммыДо_П_ХБаланс: 'amountRemainBeforeWithCreditBalance',
+  ОстатокСуммыДо_МБаланс: 'amountRemainBeforeOperationalBalance',
+  ОстатокСуммы_ХБаланс: 'amountRemainControlledBalance',
+  МожемПотратитьРублейПоСумме_П_ХБаланс:
+    'canSpendRublesByAmountWithCreditBalance',
+  ПерерасходРублейПоСумме_МБаланс: 'overdraftRublesByAmountBalance',
+  ЦенаПоКоторойМожемПотратитьБаланс: 'priceCanSpendBalance',
+  МожемПотратитьЛитров_П_Х: 'canSpendLitersWithCredit',
+  МожемПотратитьРублей_П_Х: 'canSpendRublesWithCredit',
+  ПерерасходЛитров_М: 'overdraftLiters',
+  ПерерасходРублей_М: 'overdraftRubles',
 };
 
 /**

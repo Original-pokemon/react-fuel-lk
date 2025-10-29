@@ -18,20 +18,22 @@ function ContractTable({ contracts }: ContractTableProperties) {
       dogref,
       contractNumber,
       priceTypeString,
+      priceType,
       initialAmount,
       totalAmountSpent,
       canSpendRublesWithCredit,
       paymentBalance,
-      amountRemainOperational,
+      balances,
     }) => ({
       id: dogref,
       code: contractNumber,
       fuelname: priceTypeString,
+      priceType,
       dsumma: Number.parseFloat(initialAmount),
       spent: Number.parseFloat(totalAmountSpent),
       canSpend: Number.parseFloat(canSpendRublesWithCredit),
       moneyRemain: Number.parseFloat(paymentBalance),
-      fuelRemain: Number.parseFloat(amountRemainOperational),
+      fuelRemain: balances,
     }),
   );
 
@@ -40,11 +42,11 @@ function ContractTable({ contracts }: ContractTableProperties) {
   }
 
   if (isError) {
-    return <div>Ошибка при загрузке данных по контрактам</div>;
+    return <div>Ошибка при загрузке данных по договорам</div>;
   }
 
   if (contracts.length === 0 && isSuccess) {
-    return <div>Нет данных по контрактам</div>;
+    return <div>Нет данных по договорам</div>;
   }
 
   return (

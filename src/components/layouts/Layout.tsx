@@ -32,7 +32,7 @@ const menu = [
       },
       {
         id: 2,
-        title: 'Контракты',
+        title: 'Договоры',
         url: AppRoute.Contracts,
         icon: <DescriptionIcon />,
       },

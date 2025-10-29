@@ -39,7 +39,7 @@ function Contracts() {
 
   return (
     <PageLayout
-      title="Контракты"
+      title="Договоры"
       breadcrumbs={
         <Breadcrumbs
           aria-label="breadcrumb"
@@ -55,7 +55,7 @@ function Contracts() {
             <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
             Главная
           </Link>
-          <Typography color="text.primary">Контракты</Typography>
+          <Typography color="text.primary">Договоры</Typography>
         </Breadcrumbs>
       }
       content={

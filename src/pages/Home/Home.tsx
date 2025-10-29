@@ -15,6 +15,7 @@ import {
   fetchTransactions,
   getAllTransactions,
 } from '#root/store';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
 // import DataListBox from '#root/components/home/DataListBox/DataListBox';
 import KPIBox from '#root/components/home/KPIBox/KPIBox';
@@ -181,8 +182,8 @@ function Home() {
             +overdraft === 0
               ? +value === 0
                 ? undefined
-                : `${value} литров`
-              : `Перерасход: ${overdraft} литров`;
+                : `${formatNumberWithSpaces(Number(value))} литров`
+              : `Перерасход: ${formatNumberWithSpaces(Number(overdraft))} литров`;
 
           return displayValue ? { [fuelId]: displayValue } : undefined;
         })
@@ -201,8 +202,8 @@ function Home() {
                   label="Баланс"
                   value={
                     cashOverdraft && +cashOverdraft !== 0
-                      ? `Перерасход: ${cashOverdraft} руб.`
-                      : `${cashBalance} руб.`
+                      ? `Перерасход: ${formatNumberWithSpaces(Number(cashOverdraft))} руб.`
+                      : `${formatNumberWithSpaces(Number(cashBalance))} руб.`
                   }
                 />
               )}
@@ -288,7 +289,8 @@ function Home() {
                       >
                         {card.walletType === 2 ? (
                           <Typography variant="body2">
-                            {card.totalBalance} л
+                            {formatNumberWithSpaces(Number(card.totalBalance))}{' '}
+                            л
                           </Typography>
                         ) : (
                           card.fuelBalances.map((fuel) => (
@@ -302,7 +304,7 @@ function Home() {
                             >
                               <FuelChip fuelId={fuel.fuelId} />
                               <Typography variant="body2">
-                                {fuel.volume} л
+                                {formatNumberWithSpaces(Number(fuel.volume))} л
                               </Typography>
                             </Box>
                           ))
@@ -392,7 +394,8 @@ function Home() {
                             Объем:
                           </Typography>
                           <Typography variant="body2">
-                            {transaction.volume} л
+                            {formatNumberWithSpaces(Number(transaction.volume))}{' '}
+                            л
                           </Typography>
                         </Box>
 
@@ -407,7 +410,10 @@ function Home() {
                               color: transaction.op === -1 ? 'red' : 'green',
                             }}
                           >
-                            {transaction.summa.toFixed(2)} ₽
+                            {formatNumberWithSpaces(
+                              Number(transaction.summa.toFixed(2)),
+                            )}{' '}
+                            ₽
                           </Typography>
                         </Box>
                       </Box>
