@@ -82,34 +82,40 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'string',
+    width: 300,
     renderCell: (parameters) => {
       const balances = parameters.value;
       if (!balances || typeof balances !== 'object') return '-';
 
-      let fs = '';
-      let os = '';
-
-      Object.values(balances as BalancesType).forEach((balance) => {
-        Object.values(balance).forEach((balanceInfo: BalanceType) => {
+      const fuelList = Object.values(balances as BalancesType)
+        .flatMap((balance) => Object.values(balance))
+        .map((balanceInfo: BalanceType) => {
+          const fuelName = getFuelName(balanceInfo.fuelId);
           const pcc =
             parameters.row.priceType === 33
               ? `[${balanceInfo.initialPrice}]`
               : '';
-          if (Number.parseFloat(balanceInfo.canSpendLitersWithCredit) > 0.01) {
-            const fuelName = getFuelName(balanceInfo.fuelId);
-            fs += `<b>${fuelName}${pcc}</b>&nbsp;${formatNumberWithSpaces(Number.parseFloat(balanceInfo.canSpendLitersWithCredit))}л.&nbsp;${formatNumberWithSpaces(Number.parseFloat(balanceInfo.canSpendRublesWithCredit))}руб.<br>`;
-          }
-          if (Number.parseFloat(balanceInfo.overdraftLiters) < 0.01) {
-            if (os === '') os = 'Перерасход:<br>';
-            const fuelName = getFuelName(balanceInfo.fuelId);
-            os += `<b>${fuelName}${pcc}</b>&nbsp;${formatNumberWithSpaces(Number.parseFloat(balanceInfo.overdraftLiters))}л.&nbsp;${formatNumberWithSpaces(Number.parseFloat(balanceInfo.overdraftRubles))}руб.<br>`;
-          }
-        });
-      });
+          const liters = Number.parseFloat(
+            balanceInfo.canSpendLitersWithCredit,
+          );
+          const rubles = Number.parseFloat(
+            balanceInfo.canSpendRublesWithCredit,
+          );
+          const overdraftLiters = Number.parseFloat(
+            balanceInfo.overdraftLiters,
+          );
 
-      const result = fs + os;
-      return result ? (
-        <div dangerouslySetInnerHTML={{ __html: result }} />
+          if (liters > 0.01) {
+            return `<b>${fuelName}${pcc}</b> ${liters.toFixed(2)}л. ${rubles.toFixed(2)}руб.`;
+          }
+          if (overdraftLiters < -0.01) {
+            return `<b>${fuelName}${pcc}</b> -${Math.abs(overdraftLiters).toFixed(2)}л. -${Math.abs(Number.parseFloat(balanceInfo.overdraftRubles)).toFixed(2)}руб.`;
+          }
+        })
+        .filter(Boolean);
+
+      return fuelList.length > 0 ? (
+        <div dangerouslySetInnerHTML={{ __html: fuelList.join('<br>') }} />
       ) : (
         '-'
       );

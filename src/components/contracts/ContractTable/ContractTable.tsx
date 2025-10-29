@@ -55,6 +55,8 @@ function ContractTable({ contracts }: ContractTableProperties) {
       columns={ContractColumns}
       rows={rows}
       loading={isLoading}
+      getRowHeight={() => 'auto'}
+      getEstimatedRowHeight={() => 100}
     />
   );
 }

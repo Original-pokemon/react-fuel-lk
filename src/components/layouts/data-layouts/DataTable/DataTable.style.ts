@@ -17,4 +17,14 @@ export const DataGridStyled = styled(DataGrid)<DataGridProps>(({ theme }) => ({
     wordWrap: 'break-word',
     lineHeight: 1.2,
   },
+
+  '& .MuiDataGrid-row': {
+    minHeight: 'auto !important',
+  },
+
+  '& .MuiDataGrid-cell': {
+    alignItems: 'center',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+  },
 }));
