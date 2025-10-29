@@ -5,5 +5,5 @@ export const APIRoute = {
   NomenclatureData: '/cc/e-fuelids',
   Transaction: '/cc/t',
   FullData: 'online/full',
-  MapMarkers: 'https://ortkazs.ru/map.json',
+  MapMarkers: '/api/map-markers',
 } as const;

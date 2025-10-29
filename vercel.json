@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/map-markers",
+      "destination": "https://ortkazs.ru/map.json"
+    },
+    {
       "source": "/api/:path*",
       "destination": "http://185.55.1.82:63999/:path*"
     },

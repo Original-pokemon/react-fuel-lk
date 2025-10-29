@@ -9,10 +9,8 @@ export const fetchMapMarkers = createAsyncThunk<
   void,
   AsyncThunkConfig
 >('mapMarkers/fetchMapMarkers', async () => {
-  // Use Vite proxy for CORS handling
   const { data } = await axios.get<MapMarkersType>(APIRoute.MapMarkers, {
     timeout: 5000,
-    baseURL: '', // Override baseURL to use relative path
   });
   return data;
 });
