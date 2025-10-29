@@ -81,7 +81,7 @@ function DateRangePicker({
             value={startDate}
             format="DD.MM.YYYY"
             onChange={(newValue) => setStartDate(newValue)}
-            minDate={dayjs().subtract(1, 'year')}
+            minDate={dayjs().subtract(5, 'year')}
             maxDate={endDate || undefined}
             slotProps={{
               textField: {

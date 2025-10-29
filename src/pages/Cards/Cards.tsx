@@ -4,9 +4,13 @@ import {
   Theme,
   Typography,
   useMediaQuery,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useCallback, useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
 import HomeIcon from '@mui/icons-material/Home';
 
 import CardTable from '#root/components/cards/CardTable/CardTable';
@@ -20,6 +24,7 @@ import {
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import Filter from '#root/components/Filter/Filter';
 import SortMenu from '#root/components/SortMenu/SortMenu';
+import DateRangePicker from '#root/components/transactions/DateRangePicker/DateRangePicker';
 import type { CardInfoType } from '#root/types/api-response';
 import type { SelectedFiltersType } from '#root/components/Filter/types';
 import AppRoute from '#root/const/app-route';
@@ -42,6 +47,8 @@ const filterCards = (
   cardStatus: string,
   walletType: string,
   cardNumber: string,
+  startDate?: Dayjs,
+  endDate?: Dayjs,
 ): CardInfoType[] => {
   return cards.filter((card) => {
     // Фильтрация по статусу карты
@@ -64,7 +71,16 @@ const filterCards = (
       numberMatch = card.cardNumber.toString().includes(cardNumber.trim());
     }
 
-    return statusMatch && walletMatch && numberMatch;
+    // Фильтрация по дате последней операции
+    let dateMatch = true;
+    if (startDate && endDate && card.date) {
+      const lastOpDate = dayjs(card.date);
+      dateMatch =
+        lastOpDate.isAfter(startDate.subtract(1, 'day')) &&
+        lastOpDate.isBefore(endDate.add(1, 'day'));
+    }
+
+    return statusMatch && walletMatch && numberMatch && dateMatch;
   });
 };
 
@@ -88,6 +104,12 @@ function Cards() {
   const cardStatus = searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'all';
   const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || 'all';
   const [currentSortOption, setCurrentSortOption] = useState<string>('default');
+
+  // Date range for transaction filtering
+  const [startDate, setStartDate] = useState<Dayjs>(
+    dayjs().subtract(5, 'year'),
+  );
+  const [endDate, setEndDate] = useState<Dayjs>(dayjs());
 
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
@@ -147,21 +169,77 @@ function Cards() {
     setCurrentSortOption(option);
   };
 
+  const handleDateChange = (
+    newStartDate: Dayjs | null,
+    newEndDate: Dayjs | null,
+  ) => {
+    if (newStartDate) {
+      setStartDate(newStartDate);
+    }
+
+    if (newEndDate) {
+      setEndDate(newEndDate);
+    }
+  };
+
+  // Create a map of card numbers to their last transaction date from card data
+  const cardLastTransactionMap = useMemo(() => {
+    const map = new Map<string, Date>();
+    allCards.forEach((card) => {
+      if (card.date) {
+        const lastOpDate = new Date(card.date);
+        // Check if last operation is within the selected date range
+        if (
+          lastOpDate >= startDate.toDate() &&
+          lastOpDate <= endDate.toDate()
+        ) {
+          map.set(card.cardNumber.toString(), lastOpDate);
+        }
+      }
+    });
+    return map;
+  }, [allCards, startDate, endDate]);
+
   const filteredCards = useMemo(() => {
-    return filterCards(allCards, cardStatus, walletType, cardNumber);
-  }, [allCards, cardStatus, walletType, cardNumber]);
+    return filterCards(
+      allCards,
+      cardStatus,
+      walletType,
+      cardNumber,
+      startDate,
+      endDate,
+    );
+  }, [allCards, cardStatus, walletType, cardNumber, startDate, endDate]);
 
   const sortedCards = useMemo(() => {
     const cardsCopy = [...filteredCards];
     if (currentSortOption === 'lastTransaction') {
-      // Sort by last transaction date (assuming cards have a date field)
-      cardsCopy.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+      // Sort by last transaction date within the selected range
+      cardsCopy.sort((a, b) => {
+        const aLastTransaction = cardLastTransactionMap.get(
+          a.cardNumber.toString(),
+        );
+        const bLastTransaction = cardLastTransactionMap.get(
+          b.cardNumber.toString(),
+        );
+
+        // Cards with transactions come first, sorted by most recent
+        if (aLastTransaction && bLastTransaction) {
+          return bLastTransaction.getTime() - aLastTransaction.getTime();
+        }
+        if (aLastTransaction && !bLastTransaction) {
+          return -1;
+        }
+        if (!aLastTransaction && bLastTransaction) {
+          return 1;
+        }
+        // If neither has transactions, maintain original order
+        return 0;
+      });
     }
     // Default sorting remains as is
     return cardsCopy;
-  }, [filteredCards, currentSortOption]);
+  }, [filteredCards, currentSortOption, cardLastTransactionMap]);
 
   useEffect(() => {
     if (isIdle) {
@@ -191,7 +269,31 @@ function Cards() {
         </Breadcrumbs>
       }
       filters={[
-        <Filter key={1} onChange={handleApplyFilters}>
+        <div key="date-filter-section">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+              Фильтрация карт по дате последней операции
+            </Typography>
+            <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
+              <IconButton size="small" sx={{ padding: '2px' }}>
+                <InfoIcon fontSize="small" color="action" />
+              </IconButton>
+            </Tooltip>
+          </div>
+          <DateRangePicker
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            onDateChange={handleDateChange}
+          />
+        </div>,
+        <Filter key={2} onChange={handleApplyFilters}>
           <Filter.FilterTextField
             id={FILTER_BY_CARD_NUMBER_NAME}
             title="Номер карты"
