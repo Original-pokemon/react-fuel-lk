@@ -96,7 +96,10 @@ function Home() {
 
   // Get up to 5 cards with walletType 1 and low monthRemain
   const lowMonthRemainCards = cards
-    .filter((card) => !card.blocked && card.walletType === 2)
+    .filter(
+      (card) =>
+        !card.blocked && card.walletType === 2 && +card.monthRemain !== 9999.99,
+    )
     .map((card) => {
       const fuelBalances = [
         {
@@ -111,10 +114,11 @@ function Home() {
         totalBalance: +card.monthRemain,
       };
     })
+    .filter((card) => card.totalBalance < 50)
     .sort((a, b) => a.totalBalance - b.totalBalance) // Sort by lowest balance first
     .slice(0, 5);
 
-  // Combine both lists and remove duplicates
+  // Combine both lists and remove duplicates, then sort by last usage date
   const combinedLowBalanceCards = [
     ...lowBalanceCards,
     ...lowMonthRemainCards.filter(
@@ -123,7 +127,13 @@ function Home() {
           (balanceCard) => balanceCard.cardNumber === monthCard.cardNumber,
         ),
     ),
-  ].slice(0, 5);
+  ]
+    .map((card) => ({
+      ...card,
+      lastUsed: card.date ? new Date(card.date).getTime() : 0,
+    }))
+    .sort((a, b) => b.lastUsed - a.lastUsed) // Sort by oldest usage first (newest to oldest)
+    .slice(0, 5);
 
   useEffect(() => {
     if (!firmInfo && apiResponseStatus.isIdle) {
@@ -189,6 +199,10 @@ function Home() {
         })
         .filter((item): item is NonNullable<typeof item> => item !== undefined)
     : [];
+
+  if (apiResponseStatus.isLoading || !nomenclature) {
+    return <Spinner fullscreen />;
+  }
 
   return (
     isLoaded && (

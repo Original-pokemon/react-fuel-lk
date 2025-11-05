@@ -18,6 +18,7 @@ import {
   getApiResponseStatus,
   getFirmId,
 } from '#root/store';
+import Spinner from '#root/components/Spinner/Spinner';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import AppRoute from '#root/const/app-route';
 import ContractsStyledBox from './Contracts.style';
@@ -36,6 +37,10 @@ function Contracts() {
       dispatch(fetchApiResponseData(firmId));
     }
   }, [dispatch, firmId, isIdle]);
+
+  if (isLoading) {
+    return <Spinner fullscreen />;
+  }
 
   return (
     <PageLayout

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Grid, Card, CardContent, Typography } from '@mui/material';
 import { useAppSelector } from '#root/hooks/state';
 import { getApiResponseFirmCards } from '#root/store';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 
 function CardsSummary() {
   const cards = useAppSelector(getApiResponseFirmCards);
@@ -67,7 +68,9 @@ function CardsSummary() {
             <Typography color="textSecondary" gutterBottom>
               Общий объем топлива (л)
             </Typography>
-            <Typography variant="h5">{totalFuelVolume.toFixed(2)}</Typography>
+            <Typography variant="h5">
+              {formatNumberWithSpaces(Number(totalFuelVolume.toFixed(2)))}
+            </Typography>
           </CardContent>
         </Card>
       </Grid>

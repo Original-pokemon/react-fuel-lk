@@ -24,17 +24,30 @@ function ContractTable({ contracts }: ContractTableProperties) {
       canSpendRublesWithCredit,
       paymentBalance,
       balances,
-    }) => ({
-      id: dogref,
-      code: contractNumber,
-      fuelname: priceTypeString,
-      priceType,
-      dsumma: Number.parseFloat(initialAmount),
-      spent: Number.parseFloat(totalAmountSpent),
-      canSpend: Number.parseFloat(canSpendRublesWithCredit),
-      moneyRemain: Number.parseFloat(paymentBalance),
-      fuelRemain: balances,
-    }),
+    }) => {
+      // Check if priceType is "Цена Табло" and initialAmount is 0
+      const isPriceTabloAndZeroAmount =
+        priceTypeString === 'Цена Табло' &&
+        Number.parseFloat(initialAmount) === 0;
+
+      return {
+        id: dogref,
+        code: contractNumber,
+        fuelname: priceTypeString,
+        priceType,
+        dsumma: isPriceTabloAndZeroAmount
+          ? undefined
+          : Number.parseFloat(initialAmount),
+        spent: isPriceTabloAndZeroAmount
+          ? undefined
+          : Number.parseFloat(totalAmountSpent),
+        canSpend: isPriceTabloAndZeroAmount
+          ? undefined
+          : Number.parseFloat(canSpendRublesWithCredit),
+        moneyRemain: Number.parseFloat(paymentBalance),
+        fuelRemain: balances,
+      };
+    },
   );
 
   if (isIdle) {

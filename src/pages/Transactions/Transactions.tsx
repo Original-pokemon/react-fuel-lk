@@ -17,6 +17,7 @@ import {
   getNomenclatureInfo,
   getTransactionStatus,
 } from '#root/store';
+import Spinner from '#root/components/Spinner/Spinner';
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import DateRangePicker from '#root/components/transactions/DateRangePicker/DateRangePicker';
 import TransactionsList from '#root/components/transactions/TransactionsList/TransactionsList';
@@ -108,7 +109,7 @@ function Transitions() {
   const fuelTypeString = searchParameters.get(FILTER_BY_FUEL_TYPE_NAME);
   const fuelType = fuelTypeString ? fuelTypeString.split(',') : [];
   const [startDate, setStartDate] = useState<Dayjs>(
-    dayjs().subtract(6, 'month'),
+    dayjs().subtract(6, 'month').startOf('month'),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
   const [currentSortOption, setCurrentSortOption] = useState<string>(
@@ -218,6 +219,10 @@ function Transitions() {
       }),
     );
   }, [dispatch, startDate, endDate, cardNumber]);
+
+  if (isLoadingTransactions) {
+    return <Spinner fullscreen />;
+  }
 
   return (
     <PageLayout

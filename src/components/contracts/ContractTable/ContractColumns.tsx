@@ -53,8 +53,14 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'number',
-    valueFormatter: (value: number) => Number(value.toFixed(2)),
-    renderCell: (parameters) => formatNumberWithSpaces(parameters.value),
+    valueFormatter: (value: number) => {
+      if (value === undefined || value === null) return;
+      return Number(value.toFixed(2));
+    },
+    renderCell: (parameters) =>
+      parameters.value === undefined
+        ? '—'
+        : formatNumberWithSpaces(parameters.value),
   },
   {
     field: 'spent',
@@ -63,8 +69,14 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'number',
-    valueFormatter: (value: number) => Number(value.toFixed(2)),
-    renderCell: (parameters) => formatNumberWithSpaces(parameters.value),
+    valueFormatter: (value: number) => {
+      if (value === undefined || value === null) return;
+      return Number(value.toFixed(2));
+    },
+    renderCell: (parameters) =>
+      parameters.value === undefined
+        ? '—'
+        : formatNumberWithSpaces(parameters.value),
   },
   {
     field: 'canSpend',
@@ -73,8 +85,12 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'number',
-    valueFormatter: (value: number) => Number(value.toFixed(2)),
-    renderCell: (parameters) => formatNumberWithSpaces(parameters.value),
+    valueFormatter: (value: number) =>
+      value === undefined ? undefined : Number(value.toFixed(2)),
+    renderCell: (parameters) =>
+      parameters.value === undefined
+        ? '—'
+        : formatNumberWithSpaces(parameters.value),
   },
   {
     field: 'moneyRemain',
@@ -83,8 +99,14 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'number',
-    valueFormatter: (value: number) => Number(value.toFixed(2)),
-    renderCell: (parameters) => formatNumberWithSpaces(parameters.value),
+    valueFormatter: (value: number) => {
+      if (value === undefined) return;
+      return Number(value.toFixed(2));
+    },
+    renderCell: (parameters) =>
+      parameters.value === undefined
+        ? '—'
+        : formatNumberWithSpaces(parameters.value),
   },
   {
     field: 'fuelRemain',
@@ -93,7 +115,7 @@ const ContractColumns: GridColDef[] = [
     align: 'left',
     headerAlign: 'left',
     type: 'string',
-    width: 300,
+    width: 220,
     renderCell: (parameters) => {
       const balances = parameters.value;
       if (!balances || typeof balances !== 'object') return '-';
@@ -152,7 +174,7 @@ const ContractColumns: GridColDef[] = [
           </tbody>
         </table>
       ) : (
-        <span style={{ color: '#666', fontStyle: 'italic' }}>-</span>
+          '—'
       );
     },
   },

@@ -21,6 +21,7 @@ import {
   getApiResponseFirmCards,
   getApiResponseStatus,
 } from '#root/store';
+import Spinner from '#root/components/Spinner/Spinner';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import Filter from '#root/components/Filter/Filter';
 import SortMenu from '#root/components/SortMenu/SortMenu';
@@ -107,7 +108,7 @@ function Cards() {
 
   // Date range for transaction filtering
   const [startDate, setStartDate] = useState<Dayjs>(
-    dayjs().subtract(5, 'year'),
+    dayjs().subtract(6, 'month').startOf('month'),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
 
@@ -246,6 +247,10 @@ function Cards() {
       dispatch(fetchFirmData());
     }
   }, [dispatch, isIdle]);
+
+  if (isLoading) {
+    return <Spinner fullscreen />;
+  }
 
   return (
     <PageLayout
