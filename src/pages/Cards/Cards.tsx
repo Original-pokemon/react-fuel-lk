@@ -43,11 +43,24 @@ const walletTypeOptions = [
   { label: 'Лимитный', value: '2' },
 ];
 
+const cardSostOptions = [
+  { label: 'Выдана', value: 'выдана' },
+  { label: 'Испорчена', value: 'испорчена' },
+  {
+    label: 'Не выдана',
+    value: 'не выдана',
+  },
+  { label: 'Пустая', value: 'пустая' },
+  { label: 'Утеряна', value: 'утеряна' },
+  { label: 'Черный список', value: 'чс' },
+];
+
 const filterCards = (
   cards: CardInfoType[],
   cardStatus: string,
   walletType: string,
   cardNumber: string,
+  cardSost: string[],
   startDate?: Dayjs,
   endDate?: Dayjs,
 ): CardInfoType[] => {
@@ -72,6 +85,12 @@ const filterCards = (
       numberMatch = card.cardNumber.toString().includes(cardNumber.trim());
     }
 
+    // Фильтрация по состоянию карты
+    let sostMatch = true;
+    if (cardSost.length > 0) {
+      sostMatch = cardSost.includes(card.sost);
+    }
+
     // Фильтрация по дате последней операции
     let dateMatch = true;
     if (startDate && endDate && card.date) {
@@ -81,13 +100,14 @@ const filterCards = (
         lastOpDate.isBefore(endDate.add(1, 'day'));
     }
 
-    return statusMatch && walletMatch && numberMatch && dateMatch;
+    return statusMatch && walletMatch && numberMatch && sostMatch && dateMatch;
   });
 };
 
 const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
 const FILTER_BY_CARD_STATUS_NAME = 'filterByCardStatus';
 const FILTER_BY_WALLET_TYPE_NAME = 'filterByWalletType';
+const FILTER_BY_CARD_SOST_NAME = 'filterByCardSost';
 
 const sortOptions = [
   { label: 'По умолчанию', value: 'default' },
@@ -104,6 +124,8 @@ function Cards() {
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || '';
   const cardStatus = searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'all';
   const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || 'all';
+  const cardSostString = searchParameters.get(FILTER_BY_CARD_SOST_NAME);
+  const cardSost = cardSostString ? cardSostString.split(',') : [];
   const [currentSortOption, setCurrentSortOption] = useState<string>('default');
 
   // Date range for transaction filtering
@@ -160,6 +182,19 @@ function Cards() {
           newParameters.delete(FILTER_BY_WALLET_TYPE_NAME);
         }
 
+        // Handle card sost filter
+        if (selectedFilters[FILTER_BY_CARD_SOST_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_CARD_SOST_NAME];
+          const valueList = options.map((option) => option.value);
+          if (valueList.length > 0) {
+            newParameters.set(FILTER_BY_CARD_SOST_NAME, valueList.join(','));
+          } else {
+            newParameters.delete(FILTER_BY_CARD_SOST_NAME);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_CARD_SOST_NAME);
+        }
+
         return newParameters;
       });
     },
@@ -207,10 +242,19 @@ function Cards() {
       cardStatus,
       walletType,
       cardNumber,
+      cardSost,
       startDate,
       endDate,
     );
-  }, [allCards, cardStatus, walletType, cardNumber, startDate, endDate]);
+  }, [
+    allCards,
+    cardStatus,
+    walletType,
+    cardNumber,
+    cardSost,
+    startDate,
+    endDate,
+  ]);
 
   const sortedCards = useMemo(() => {
     const cardsCopy = [...filteredCards];
@@ -317,6 +361,12 @@ function Cards() {
             title="Тип кошелька"
             defaultValue={walletType}
             options={walletTypeOptions}
+          />
+
+          <Filter.MultipleChoice
+            id={FILTER_BY_CARD_SOST_NAME}
+            title="Состояние"
+            options={cardSostOptions}
           />
         </Filter>,
       ]}

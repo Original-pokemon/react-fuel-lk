@@ -35,6 +35,7 @@ const fieldMappings: Record<string, string> = {
   ЛимитМесяц: 'monthLimit',
   ОстатокМесяц: 'monthRemain',
   Кошельки: 'wallets',
+  Состояние: 'sost',
 
   // Contract fields
   ДоговорНачалоДействия: 'contractStartDate',

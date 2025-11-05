@@ -154,6 +154,7 @@ export type CardInfoType = {
   monthLimit: string;
   monthRemain: string;
   wallets: CardWalletType;
+  sost: string;
 };
 
 /**
