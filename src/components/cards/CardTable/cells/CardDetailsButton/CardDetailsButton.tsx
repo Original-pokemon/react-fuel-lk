@@ -1,16 +1,16 @@
-import { IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
   Visibility as VisibilityIcon,
   Receipt as ReceiptIcon,
-} from "@mui/icons-material";
+} from '@mui/icons-material';
 import {
   createSearchParams,
   useNavigate,
   useSearchParams,
-} from "react-router-dom";
-import { useState, MouseEvent } from "react";
-import AppRoute from "#root/const/app-route";
+} from 'react-router-dom';
+import { useState, MouseEvent } from 'react';
+import AppRoute from '#root/const/app-route';
 
 type CardDetailsButtonProperties = {
   cardnum: number;
@@ -35,7 +35,11 @@ function CardDetailsButton({
   };
 
   const handleViewDetails = () => {
-    setSearchParameters({ modalcardnum: cardnum.toString() });
+    setSearchParameters((previous) => {
+      const newParameters = new URLSearchParams(previous);
+      newParameters.set('modalcardnum', cardnum.toString());
+      return newParameters;
+    });
     handleClose();
   };
 

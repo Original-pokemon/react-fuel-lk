@@ -91,7 +91,10 @@ const filterCards = (
 
     // Фильтрация по дате последней операции
     let dateMatch = true;
-    if (startDate && endDate && card.date) {
+    if (cardNumber.trim()) {
+      // Если задан номер карты, не фильтруем по дате
+      dateMatch = true;
+    } else if (startDate && endDate && card.date) {
       const lastOpDate = dayjs(card.date);
       dateMatch =
         lastOpDate.isAfter(startDate.subtract(1, 'day')) &&
