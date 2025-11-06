@@ -5,6 +5,7 @@ import DataList from '#root/components/layouts/data-layouts/DataList/DataList';
 import LimitCell from '../CardTable/cells/LimitCell/LimitCell';
 import WalletTypeCell from '../CardTable/cells/WalletTypeCell/WalletTypeCell';
 import StatusCell from '../CardTable/cells/StatusCell/StatusCell';
+import SostCell from '../CardTable/cells/SostCell/SostCell';
 import CardListHeader from './CardListHeader';
 import { DateCell } from '../CardTable/cells/DateCell/DateCell';
 
@@ -17,6 +18,7 @@ const getCardBodyElement = ({
   dayLimit,
   monthRemain,
   monthLimit,
+  sost,
 }: CardInfoType): React.ReactElement => (
   <Grid2 container spacing={2}>
     {/* Owner and Last Operation */}
@@ -54,6 +56,13 @@ const getCardBodyElement = ({
           Статус:
         </Typography>
         <StatusCell value={Boolean(blocked)} />
+      </Grid2>
+
+      <Grid2 size={6}>
+        <Typography variant="caption" color="main.light">
+          Состояние:
+        </Typography>
+        <SostCell value={sost} />
       </Grid2>
     </Grid2>
 

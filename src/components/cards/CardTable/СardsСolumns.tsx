@@ -2,6 +2,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import CardDetailsButton from './cells/CardDetailsButton/CardDetailsButton';
 import LimitCell from './cells/LimitCell/LimitCell';
 import StatusCell from './cells/StatusCell/StatusCell';
+import SostCell from './cells/SostCell/SostCell';
 import WalletTypeCell from './cells/WalletTypeCell/WalletTypeCell';
 import { DateCell } from './cells/DateCell/DateCell';
 
@@ -37,6 +38,14 @@ const CardsColumns: GridColDef[] = [
     align: 'center',
     type: 'custom',
     renderCell: (parameters) => <StatusCell value={parameters.value} />,
+  },
+  {
+    field: 'sost',
+    headerName: 'Состояние',
+    display: 'flex',
+    align: 'center',
+    type: 'custom',
+    renderCell: (parameters) => <SostCell value={parameters.value} />,
   },
   {
     field: 'dayLimitInfo',

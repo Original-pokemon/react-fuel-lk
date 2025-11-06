@@ -51,7 +51,7 @@ function ContractTable({ contracts }: ContractTableProperties) {
   );
 
   if (isIdle) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   if (isError) {

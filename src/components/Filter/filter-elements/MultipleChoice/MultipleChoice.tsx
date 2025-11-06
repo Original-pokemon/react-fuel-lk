@@ -5,7 +5,7 @@ import {
   FormControl,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FilterSectionType } from '../../types';
 import {
   useSelectedFiltersDispatch,
@@ -13,9 +13,34 @@ import {
 } from '../../hooks';
 import Actions from '../../const';
 
-function MultipleChoice({ id, title, options }: FilterSectionType) {
+function MultipleChoice({
+  id,
+  title,
+  options,
+  defaultValue,
+}: FilterSectionType) {
   const selectedFilters = useSelectedFiltersState();
   const dispatch = useSelectedFiltersDispatch();
+
+  useEffect(() => {
+    if (defaultValue && Array.isArray(defaultValue) && !selectedFilters[id]) {
+      const defaultOptions = options.filter((option) =>
+        defaultValue.includes(option.value),
+      );
+      if (defaultOptions.length > 0) {
+        dispatch({
+          type: Actions.ADD_FILTER,
+          payload: {
+            id,
+            filter: {
+              title,
+              options: defaultOptions,
+            },
+          },
+        });
+      }
+    }
+  }, [defaultValue, id, options, selectedFilters, dispatch]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue = event.target.value;

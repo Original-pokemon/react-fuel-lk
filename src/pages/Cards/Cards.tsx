@@ -46,11 +46,6 @@ const walletTypeOptions = [
 const cardSostOptions = [
   { label: 'Выдана', value: 'выдана' },
   { label: 'Испорчена', value: 'испорчена' },
-  {
-    label: 'Не выдана',
-    value: 'не выдана',
-  },
-  { label: 'Пустая', value: 'пустая' },
   { label: 'Утеряна', value: 'утеряна' },
   { label: 'Черный список', value: 'чс' },
 ];
@@ -89,6 +84,9 @@ const filterCards = (
     let sostMatch = true;
     if (cardSost.length > 0) {
       sostMatch = cardSost.includes(card.sost);
+    } else {
+      // По умолчанию показывать только карты со статусом "Выдана"
+      sostMatch = card.sost === 'выдана';
     }
 
     // Фильтрация по дате последней операции
@@ -122,10 +120,11 @@ function Cards() {
 
   // filters
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || '';
-  const cardStatus = searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'all';
+  const cardStatus =
+    searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'active';
   const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || 'all';
   const cardSostString = searchParameters.get(FILTER_BY_CARD_SOST_NAME);
-  const cardSost = cardSostString ? cardSostString.split(',') : [];
+  const cardSost = cardSostString ? cardSostString.split(',') : ['выдана'];
   const [currentSortOption, setCurrentSortOption] = useState<string>('default');
 
   // Date range for transaction filtering
@@ -160,7 +159,7 @@ function Cards() {
         if (selectedFilters[FILTER_BY_CARD_STATUS_NAME]) {
           const { options } = selectedFilters[FILTER_BY_CARD_STATUS_NAME];
           const { value } = options[0];
-          if (value === 'all') {
+          if (value === 'active') {
             newParameters.delete(FILTER_BY_CARD_STATUS_NAME);
           } else {
             newParameters.set(FILTER_BY_CARD_STATUS_NAME, value);
@@ -293,7 +292,7 @@ function Cards() {
   }, [dispatch, isIdle]);
 
   if (isLoading) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   return (
@@ -367,6 +366,7 @@ function Cards() {
             id={FILTER_BY_CARD_SOST_NAME}
             title="Состояние"
             options={cardSostOptions}
+            defaultValue={['выдана']}
           />
         </Filter>,
       ]}

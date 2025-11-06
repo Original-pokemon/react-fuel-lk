@@ -25,7 +25,7 @@ function AuthGuard(): React.JSX.Element {
   }, [dispatch, isIdle, isError, token, navigate]);
 
   if (isLoading) {
-    return <Spinner fullscreen size={100} />;
+    return <Spinner fullscreen={false} size={100} />;
   }
 
   return <Outlet />;

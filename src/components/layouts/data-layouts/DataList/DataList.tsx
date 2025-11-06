@@ -76,7 +76,7 @@ function DataList({
           }
           return <DataListItem id={id} header={header} body={body} key={id} />;
         })}
-        {isLoading && <Spinner fullscreen />}
+        {isLoading && <Spinner fullscreen={false} />}
       </Stack>
     </Box>
   );

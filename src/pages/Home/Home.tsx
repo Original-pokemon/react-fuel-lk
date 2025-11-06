@@ -1,4 +1,4 @@
-import { useEffect, Fragment } from 'react';
+import { useEffect, Fragment, useState } from 'react';
 import { Box, Grid2 as Grid, Typography, Button } from '@mui/material';
 import dayjs from 'dayjs';
 
@@ -64,6 +64,7 @@ function Home() {
 
   const apiResponseStatus = useAppSelector(getApiResponseStatus);
   const { isIdle } = useAppSelector(getAppStatus);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const isLoaded = apiResponseStatus.isSuccess && firmInfo;
 
@@ -72,7 +73,10 @@ function Home() {
 
   // Get up to 5 cards with low balance (minimum fuel volume less than 50 liters)
   const lowBalanceCards = cards
-    .filter((card) => !card.blocked && card.walletType !== 2)
+    .filter(
+      (card) =>
+        !card.blocked && card.walletType !== 2 && card.sost === 'выдана',
+    )
     .map((card) => {
       const fuelBalances = Object.entries(card.wallets).map(
         ([fuelId, volume]) => ({
@@ -98,7 +102,10 @@ function Home() {
   const lowMonthRemainCards = cards
     .filter(
       (card) =>
-        !card.blocked && card.walletType === 2 && +card.monthRemain !== 9999.99,
+        !card.blocked &&
+        card.walletType === 2 &&
+        +card.monthRemain !== 9999.99 &&
+        card.sost === 'выдана',
     )
     .map((card) => {
       const fuelBalances = [
@@ -149,6 +156,7 @@ function Home() {
 
   useEffect(() => {
     if (firmInfo && transactions.length === 0) {
+      setIsLoadingTransactions(true);
       dispatch(
         fetchTransactions({
           firmid: firmInfo.firmId,
@@ -156,12 +164,12 @@ function Home() {
           fromday: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
           day: dayjs().format('YYYY-MM-DD'),
         }),
-      );
+      ).finally(() => setIsLoadingTransactions(false));
     }
   }, [firmInfo, transactions.length, dispatch]);
 
   if (apiResponseStatus.isLoading || !nomenclature) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   // const transactionsKpi = {
@@ -201,7 +209,7 @@ function Home() {
     : [];
 
   if (apiResponseStatus.isLoading || !nomenclature) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   return (
@@ -353,7 +361,9 @@ function Home() {
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <DashboardCard title="Последние транзакции">
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {latestTransactions.length > 0 ? (
+                {isLoadingTransactions ? (
+                  <Spinner fullscreen={false} />
+                ) : latestTransactions.length > 0 ? (
                   latestTransactions.map((transaction) => (
                     <Box
                       key={`${transaction.dt}-${transaction.cardnum}-${transaction.op}`}

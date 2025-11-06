@@ -24,6 +24,7 @@ function CardTable({ cards }: CardsTable) {
       dayLimit,
       monthRemain,
       monthLimit,
+      sost,
     }) => ({
       id: cardNumber,
       cardnum: cardNumber,
@@ -35,11 +36,12 @@ function CardTable({ cards }: CardsTable) {
       daylimit: +dayLimit,
       dayremain: +dayRemain,
       datelastop: new Date(date),
+      sost,
     }),
   );
 
   if (isIdle) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   if (isError) {

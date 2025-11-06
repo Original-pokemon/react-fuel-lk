@@ -5,7 +5,7 @@ import {
   FormControl,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FilterSectionType } from '../../types';
 import {
   useSelectedFiltersDispatch,
@@ -25,6 +25,26 @@ function SingleChoice({
 }: SingleChoiceComponentProperties) {
   const selectedFilters = useSelectedFiltersState();
   const dispatch = useSelectedFiltersDispatch();
+
+  useEffect(() => {
+    if (defaultValue && !selectedFilters[id]) {
+      const defaultOption = options.find(
+        (option) => option.value === defaultValue,
+      );
+      if (defaultOption) {
+        dispatch({
+          type: Actions.ADD_FILTER,
+          payload: {
+            id,
+            filter: {
+              title,
+              options: [defaultOption],
+            },
+          },
+        });
+      }
+    }
+  }, [defaultValue, id, options, selectedFilters, dispatch]);
 
   const selected = selectedFilters[id]?.options[0]?.value || defaultValue;
 

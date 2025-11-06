@@ -221,7 +221,7 @@ function Transitions() {
   }, [dispatch, startDate, endDate, cardNumber]);
 
   if (isLoadingTransactions) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   return (

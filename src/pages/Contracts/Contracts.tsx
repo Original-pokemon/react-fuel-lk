@@ -39,7 +39,7 @@ function Contracts() {
   }, [dispatch, firmId, isIdle]);
 
   if (isLoading) {
-    return <Spinner fullscreen />;
+    return <Spinner fullscreen={false} />;
   }
 
   return (

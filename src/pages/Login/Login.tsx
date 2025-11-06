@@ -91,7 +91,7 @@ function Login() {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      {isLoading && <Spinner fullscreen size={70} />}
+      {isLoading && <Spinner fullscreen={false} size={70} />}
       <Box
         sx={{
           marginTop: 8,
