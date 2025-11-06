@@ -14,25 +14,20 @@ import {
   getAppStatus,
   fetchTransactions,
   getAllTransactions,
+  fetchMapMarkers,
+  getMapMarkers,
+  getMapMarkersStatus,
 } from '#root/store';
 import { formatNumberWithSpaces } from '#root/utils/format-number';
 import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
-// import DataListBox from '#root/components/home/DataListBox/DataListBox';
 import KPIBox from '#root/components/home/KPIBox/KPIBox';
-// import {
-//   CardsInfoCard,
-//   FuelBalanceCard,
-//   ExpenseDynamicsChartCard, // Import the new component
-// } from '#root/components/home/boxes/boxex';
 import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
 import CardAvatar from '#root/components/CardAvatar/CardAvatar';
 import AppRoute from '#root/const/app-route';
 import { useNavigate } from 'react-router-dom';
-// import HomeStyledBox from './Home.style';
 import FuelChip from '#root/components/FuelChip/FuelChip';
 import ODINTSOVO_COORD from '../../const/map';
 import { prepareMarkers } from '../../utils/markers';
-import mapInfo from '../../mock/map-info';
 import Map from '../../components/Map/Map';
 
 const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
@@ -52,7 +47,6 @@ const mapConfig = {
   },
   style: { height: '100%' },
 };
-const markers = prepareMarkers(mapInfo);
 
 function Home() {
   const dispatch = useAppDispatch();
@@ -64,7 +58,11 @@ function Home() {
 
   const apiResponseStatus = useAppSelector(getApiResponseStatus);
   const { isIdle } = useAppSelector(getAppStatus);
+  const mapMarkers = useAppSelector(getMapMarkers);
+  const { isIdle: isMapMarkersIdle } = useAppSelector(getMapMarkersStatus);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+
+  const markers = prepareMarkers(mapMarkers || { features: [] });
 
   const isLoaded = apiResponseStatus.isSuccess && firmInfo;
 
@@ -155,6 +153,12 @@ function Home() {
   }, [nomenclature, dispatch, isIdle]);
 
   useEffect(() => {
+    if (isMapMarkersIdle) {
+      dispatch(fetchMapMarkers());
+    }
+  }, [dispatch, isMapMarkersIdle]);
+
+  useEffect(() => {
     if (firmInfo && transactions.length === 0) {
       setIsLoadingTransactions(true);
       dispatch(
@@ -172,21 +176,7 @@ function Home() {
     return <Spinner fullscreen={false} />;
   }
 
-  // const transactionsKpi = {
-  //   weekCount: 54,
-  //   averageDaily: 200,
-  //   totalSpent: 15_000,
-  // };
-
-  // Get the latest 5 transactions
   const latestTransactions = transactions.slice(0, 5);
-
-  // Removed hardcoded fuelData
-
-  // const topUsedCards = [
-  //   { label: 'Карта #1234', value: '2000 л/нед.' },
-  //   { label: 'Карта #5678', value: '1800 л/нед.' },
-  // ];
 
   const cashBalance = firmInfo?.canSpendStringRubles;
   const cashOverdraft = firmInfo?.fuelVolumeOverdraft['1'];
