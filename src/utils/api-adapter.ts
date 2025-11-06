@@ -123,6 +123,8 @@ const fieldMappings: Record<string, string> = {
   ЦенаПоКоторойМожемПотратитьБаланс: 'priceCanSpendBalance',
   МожемПотратитьЛитров_П_Х: 'canSpendLitersWithCredit',
   МожемПотратитьРублей_П_Х: 'canSpendRublesWithCredit',
+  МожноПотратитьСтрокаРуб: 'canSpendStringRubles',
+  МожемПотратитьСтрокаРуб: 'canSpendStringRubles',
   ПерерасходЛитров_М: 'overdraftLiters',
   ПерерасходРублей_М: 'overdraftRubles',
 };

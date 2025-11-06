@@ -41,9 +41,7 @@ function ContractTable({ contracts }: ContractTableProperties) {
         spent: isPriceTabloAndZeroAmount
           ? undefined
           : Number.parseFloat(totalAmountSpent),
-        canSpend: isPriceTabloAndZeroAmount
-          ? undefined
-          : Number.parseFloat(canSpendRublesWithCredit),
+        canSpend: Number.parseFloat(canSpendRublesWithCredit),
         moneyRemain: Number.parseFloat(paymentBalance),
         fuelRemain: balances,
       };

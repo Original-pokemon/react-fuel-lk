@@ -80,7 +80,7 @@ const ContractColumns: GridColDef[] = [
   },
   {
     field: 'canSpend',
-    headerName: 'Можно потратить',
+    headerName: 'Можно потратить по договору',
     display: 'flex',
     align: 'left',
     headerAlign: 'left',
@@ -90,7 +90,9 @@ const ContractColumns: GridColDef[] = [
     renderCell: (parameters) =>
       parameters.value === undefined
         ? '—'
-        : formatNumberWithSpaces(parameters.value),
+        : typeof parameters.value === 'number' && parameters.value > 999_999_999
+          ? 'Работа в кредит'
+          : formatNumberWithSpaces(parameters.value),
   },
   {
     field: 'moneyRemain',
@@ -174,7 +176,7 @@ const ContractColumns: GridColDef[] = [
           </tbody>
         </table>
       ) : (
-          '—'
+        '—'
       );
     },
   },

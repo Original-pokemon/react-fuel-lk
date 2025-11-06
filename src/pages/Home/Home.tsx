@@ -188,7 +188,7 @@ function Home() {
   //   { label: 'Карта #5678', value: '1800 л/нед.' },
   // ];
 
-  const cashBalance = firmInfo?.total['1'];
+  const cashBalance = firmInfo?.canSpendStringRubles;
   const cashOverdraft = firmInfo?.fuelVolumeOverdraft['1'];
   const fuelData = firmInfo
     ? Object.entries(firmInfo.fuelVolumeRemain)
@@ -221,11 +221,16 @@ function Home() {
             <DashboardCard title="Ключевые метрики">
               {cashBalance && cashBalance !== '0' && (
                 <KPIBox
-                  label="Баланс"
+                  label="Можно потратить по договору"
                   value={
                     cashOverdraft && +cashOverdraft !== 0
                       ? `Перерасход: ${formatNumberWithSpaces(Number(cashOverdraft))} руб.`
-                      : `${formatNumberWithSpaces(Number(cashBalance))} руб.`
+                      : cashBalance === 'кредит'
+                        ? 'Работа в кредит'
+                        : typeof cashBalance === 'string' &&
+                            Number.isNaN(Number(cashBalance))
+                          ? cashBalance
+                          : `${formatNumberWithSpaces(Number(cashBalance))} руб.`
                   }
                 />
               )}
