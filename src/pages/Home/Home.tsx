@@ -224,6 +224,12 @@ function Home() {
                   }
                 />
               )}
+              {cashBalance === 'кредит' && firmInfo?.total[1] && (
+                <KPIBox
+                  label="Сальдо расчетов"
+                  value={`${formatNumberWithSpaces(Number(firmInfo.total[1]))} руб.`}
+                />
+              )}
               {fuelData.length > 0 && (
                 <KPIBox
                   label="Баланс топлива"
