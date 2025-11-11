@@ -3,84 +3,95 @@ import { ApiContractType } from '#root/types';
 import { DataListItemProps } from '#root/components/layouts/data-layouts/DataList/DataListItem/DataListItem';
 import DataList from '#root/components/layouts/data-layouts/DataList/DataList';
 import { DateCell } from '#root/components/cards/CardTable/cells/DateCell/DateCell';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 import ContractListHeader from './ContractListHeader';
 
 const getContractBodyElement = ({
-  contractComment,
   priceTypeString,
-  contractStartDate,
   contractEndDate,
-  discountMultiplier,
   paymentBalance,
+  initialAmount,
+  totalAmountSpent,
+  canSpendRublesWithCredit,
 }: ApiContractType): React.ReactElement => (
-  <Grid2 container spacing={2}>
-    {/* Basic Info */}
-    <Grid2 size={12} container columnSpacing={1} rowSpacing={1}>
-      <Grid2 size={6}>
-        <Typography variant="caption" color="main.light">
-          Комментарий:
-        </Typography>
-        <Typography variant="subtitle2">{contractComment}</Typography>
-      </Grid2>
-
+  <Grid2 container spacing={1}>
+    {/* Financial Info */}
+    <Grid2 size={12} container columnSpacing={2} rowSpacing={1}>
       <Grid2 size={6}>
         <Typography variant="caption" color="main.light">
           Тип цены:
         </Typography>
-        <Typography variant="subtitle2">{priceTypeString}</Typography>
+        <Typography variant="subtitle2" fontWeight="medium">
+          {priceTypeString}
+        </Typography>
       </Grid2>
 
       <Grid2 size={6}>
         <Typography variant="caption" color="main.light">
-          Остаток:
+          Сумма договора:
         </Typography>
         <Typography variant="subtitle2">
-          {Number.parseFloat(paymentBalance).toFixed(2)}
+          {initialAmount
+            ? `${formatNumberWithSpaces(Number(initialAmount))} ₽`
+            : '—'}
         </Typography>
       </Grid2>
 
       <Grid2 size={6}>
         <Typography variant="caption" color="main.light">
-          Скидка:
+          Расход:
         </Typography>
-        <Typography variant="subtitle2">{discountMultiplier}</Typography>
+        <Typography variant="subtitle2">
+          {totalAmountSpent
+            ? `${formatNumberWithSpaces(Number(totalAmountSpent))} ₽`
+            : '—'}
+        </Typography>
+      </Grid2>
+
+      <Grid2 size={6}>
+        <Typography variant="caption" color="main.light">
+          Можно потратить:
+        </Typography>
+        <Typography variant="subtitle2">
+          {typeof canSpendRublesWithCredit === 'number' &&
+          canSpendRublesWithCredit > 999_999_999
+            ? 'Работа в кредит'
+            : canSpendRublesWithCredit
+              ? `${formatNumberWithSpaces(Number(canSpendRublesWithCredit))} ₽`
+              : '—'}
+        </Typography>
+      </Grid2>
+
+      <Grid2 size={6}>
+        <Typography variant="caption" color="main.light">
+          Сальдо расчетов:
+        </Typography>
+        <Typography variant="subtitle2">
+          {paymentBalance
+            ? `${formatNumberWithSpaces(Number(paymentBalance))} ₽`
+            : '—'}
+        </Typography>
       </Grid2>
     </Grid2>
 
     <Grid2 size={12}>
-      <Divider />
+      <Divider sx={{ my: 1 }} />
     </Grid2>
 
     {/* Contract Details */}
-    <Grid2 container size={12} spacing={2}>
-      {contractStartDate && (
-        <Grid2 size={6}>
-          <Typography variant="caption" color="main.light">
-            Дата начала:
-          </Typography>
-          <DateCell
-            value={contractStartDate}
-            flexDirection="row"
-            backgroundColor="#ffff"
-            variant="outlined"
-          />
-        </Grid2>
-      )}
-
-      {contractEndDate && (
-        <Grid2 size={6}>
-          <Typography variant="caption" color="main.light">
-            Дата окончания:
-          </Typography>
-          <DateCell
-            value={contractEndDate}
-            flexDirection="row"
-            backgroundColor="#ffff"
-            variant="outlined"
-          />
-        </Grid2>
-      )}
-    </Grid2>
+    {contractEndDate && (
+      <Grid2 size={12}>
+        <Typography variant="caption" color="main.light">
+          Дата окончания:
+        </Typography>
+        <DateCell
+          value={contractEndDate}
+          flexDirection="row"
+          backgroundColor="#ffff"
+          variant="outlined"
+        />
+      </Grid2>
+    )}
   </Grid2>
 );
 
