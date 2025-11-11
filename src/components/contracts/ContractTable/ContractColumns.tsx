@@ -3,6 +3,7 @@ import { getContrastRatio } from '@mui/material';
 import { formatNumberWithSpaces } from '#root/utils/format-number';
 import type { BalancesType, BalanceType } from '#root/types/api-response';
 import theme from '#root/styles/theme';
+import { DateCell } from '#root/components/cards/CardTable/cells/DateCell/DateCell';
 
 // Fuel name and color mapping based on fuel IDs
 const fuelConfigMap: Record<number, { name: string; color: string }> = {
@@ -179,6 +180,23 @@ const ContractColumns: GridColDef[] = [
         '—'
       );
     },
+  },
+  {
+    field: 'contractEndDate',
+    headerName: 'Дата окончания',
+    display: 'flex',
+    align: 'left',
+    headerAlign: 'left',
+    type: 'date',
+    valueGetter: (value) => (value ? new Date(value) : undefined),
+    renderCell: (parameters) => (
+      <DateCell
+        value={parameters.value}
+        flexDirection="row"
+        backgroundColor="#ffff"
+        variant="outlined"
+      />
+    ),
   },
 ];
 

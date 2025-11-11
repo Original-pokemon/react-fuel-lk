@@ -24,6 +24,7 @@ function ContractTable({ contracts }: ContractTableProperties) {
       canSpendRublesWithCredit,
       paymentBalance,
       balances,
+      contractEndDate,
     }) => {
       // Check if priceType is "Цена Табло" and initialAmount is 0
       const isPriceTabloAndZeroAmount =
@@ -44,6 +45,7 @@ function ContractTable({ contracts }: ContractTableProperties) {
         canSpend: Number.parseFloat(canSpendRublesWithCredit),
         moneyRemain: Number.parseFloat(paymentBalance),
         fuelRemain: balances,
+        contractEndDate,
       };
     },
   );
