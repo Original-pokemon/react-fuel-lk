@@ -12,7 +12,7 @@ function FuelChip({ fuelId }: FuelChipProperties) {
 
   const fuel = nomenclature?.find((item) => item.fuelid === fuelId);
   const fuelName = fuel ? fuel.fuelname : 'Неизвестное топливо';
-  const color = theme.palette.fuelColors[fuelId] || '#CCCCCC';
+  const color = theme.palette.fuelColors?.[fuelId] || '#CCCCCC';
 
   const contrastTextColor =
     getContrastRatio(color, theme.palette.common.black) > 4.5

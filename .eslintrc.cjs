@@ -7,7 +7,6 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:unicorn/recommended",
     "plugin:prettier/recommended",
     "plugin:storybook/recommended",
   ],
@@ -33,7 +32,6 @@ module.exports = {
     "react",
     "react-refresh",
     "prettier",
-    "unicorn",
     "check-file",
     "@emotion",
   ],
@@ -44,7 +42,14 @@ module.exports = {
     "react-refresh/only-export-components": "warn",
     "react/jsx-uses-react": "off",
     "react/function-component-definition": "warn",
-    "unicorn/no-array-for-each": "off",
+    "check-file/filename-naming-convention": [
+      "error",
+      {
+        "**/components/**/*.tsx": "PASCAL_CASE",
+        "**/pages/**/*.tsx": "PASCAL_CASE",
+        "**/*.{ts,js}": "KEBAB_CASE"
+      }
+    ],
     "import/extensions": [
       "error",
       "ignorePackages",

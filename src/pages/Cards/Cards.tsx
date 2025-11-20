@@ -6,6 +6,9 @@ import {
   useMediaQuery,
   Tooltip,
   IconButton,
+  Tabs,
+  Tab,
+  Box,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
@@ -15,12 +18,17 @@ import HomeIcon from '@mui/icons-material/Home';
 
 import CardTable from '#root/components/cards/CardTable/CardTable';
 import CardsList from '#root/components/cards/CardsList/CardsList';
+import MonthlyExpensesView from '#root/components/cards/monthly-expenses/MonthlyExpensesView';
 import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import {
   fetchFirmData,
   getApiResponseFirmCards,
   getApiResponseStatus,
+  getAllTransactions,
+  getNomenclatureInfo,
+  fetchTransactions,
 } from '#root/store';
+import aggregateMonthlyExpenses from '#root/utils/monthly-expenses';
 import Spinner from '#root/components/Spinner/Spinner';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import Filter from '#root/components/Filter/Filter';
@@ -109,6 +117,7 @@ const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
 const FILTER_BY_CARD_STATUS_NAME = 'filterByCardStatus';
 const FILTER_BY_WALLET_TYPE_NAME = 'filterByWalletType';
 const FILTER_BY_CARD_SOST_NAME = 'filterByCardSost';
+const ACTIVE_TAB_NAME = 'tab';
 
 const sortOptions = [
   { label: 'По умолчанию', value: 'default' },
@@ -119,6 +128,8 @@ function Cards() {
   const dispatch = useAppDispatch();
   const { isIdle, isLoading } = useAppSelector(getApiResponseStatus);
   const allCards = useAppSelector(getApiResponseFirmCards);
+  const transactions = useAppSelector(getAllTransactions);
+  const nomenclature = useAppSelector(getNomenclatureInfo);
   const [searchParameters, setSearchParameters] = useSearchParams();
 
   // filters
@@ -129,6 +140,11 @@ function Cards() {
   const cardSostString = searchParameters.get(FILTER_BY_CARD_SOST_NAME);
   const cardSost = cardSostString ? cardSostString.split(',') : ['выдана'];
   const [currentSortOption, setCurrentSortOption] = useState<string>('default');
+  const activeTabParameter = searchParameters.get(ACTIVE_TAB_NAME);
+  const [activeTab, setActiveTab] = useState<number>(
+    activeTabParameter ? Number.parseInt(activeTabParameter, 10) : 0,
+  );
+  const [isReportLoading, setIsReportLoading] = useState<boolean>(false);
 
   // Date range for transaction filtering
   const [startDate, setStartDate] = useState<Dayjs>(
@@ -288,11 +304,36 @@ function Cards() {
     return cardsCopy;
   }, [filteredCards, currentSortOption, cardLastTransactionMap]);
 
+  // Агрегируем данные о месячных расходах
+  const monthlyExpensesData = useMemo(() => {
+    return aggregateMonthlyExpenses(
+      transactions,
+      nomenclature || [],
+      startDate.toDate(),
+      endDate.toDate(),
+    );
+  }, [transactions, nomenclature, startDate, endDate]);
+
   useEffect(() => {
     if (isIdle) {
       dispatch(fetchFirmData());
     }
   }, [dispatch, isIdle]);
+
+  // Загружаем транзакции для отчета по расходам
+  useEffect(() => {
+    setIsReportLoading(true);
+    dispatch(
+      fetchTransactions({
+        firmid: -1,
+        cardnum: -1, // Получаем все карты
+        fromday: startDate.format('YYYY-MM-DD'),
+        day: endDate.format('YYYY-MM-DD'),
+      }),
+    ).finally(() => {
+      setIsReportLoading(false);
+    });
+  }, [dispatch, startDate, endDate]);
 
   if (isLoading) {
     return <Spinner fullscreen={false} />;
@@ -382,13 +423,69 @@ function Cards() {
         />
       }
       content={
-        <CardsStyledBox className="cards">
-          {isSmallScreen ? (
-            <CardsList cards={sortedCards} isLoading={isLoading} />
-          ) : (
-            <CardTable cards={sortedCards} />
+        <Box>
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => {
+              setActiveTab(newValue);
+              // Обновляем URL параметры сразу при клике
+              setSearchParameters((previous) => {
+                const newParameters = new URLSearchParams(previous);
+                if (newValue === 0) {
+                  newParameters.delete(ACTIVE_TAB_NAME);
+                } else {
+                  newParameters.set(ACTIVE_TAB_NAME, newValue.toString());
+                }
+                return newParameters;
+              });
+            }}
+            sx={{
+              borderBottom: 1,
+              borderColor: 'divider',
+              mb: 2,
+              '& .MuiTab-root': {
+                color: 'text.primary',
+                '&.Mui-selected': {
+                  color: 'text.primary',
+                },
+              },
+            }}
+          >
+            <Tab label="Карты" />
+            <Tab label="Отчет по топливу" />
+          </Tabs>
+
+          {activeTab === 0 && (
+            <CardsStyledBox className="cards">
+              {isSmallScreen ? (
+                <CardsList cards={sortedCards} isLoading={isLoading} />
+              ) : (
+                <CardTable cards={sortedCards} />
+              )}
+            </CardsStyledBox>
           )}
-        </CardsStyledBox>
+
+          {activeTab === 1 &&
+            (isReportLoading ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  minHeight: '200px',
+                }}
+              >
+                <Spinner fullscreen={false} />
+              </Box>
+            ) : (
+              <MonthlyExpensesView
+                data={monthlyExpensesData}
+                startDate={startDate}
+                endDate={endDate}
+                nomenclature={nomenclature}
+              />
+            ))}
+        </Box>
       }
     />
   );
