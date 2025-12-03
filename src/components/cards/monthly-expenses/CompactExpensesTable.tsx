@@ -113,6 +113,10 @@ function CompactExpensesTable({
       ]);
       excelData.push(headers);
 
+      // Строка итога сразу после заголовков
+      const totalRowIndex = excelData.length;
+      excelData.push(['Итог', '', '', '', '', '', 0, '', '', 0]);
+
       // Группировка транзакций по картам
       const cardMap = new Map<number, typeof monthTransactions>();
 
@@ -129,6 +133,32 @@ function CompactExpensesTable({
 
       // Для каждой карты
       cardMap.forEach((cardTransactions, cardNumber) => {
+        // Считаем общие суммы для карты
+        let cardTotalVolume = 0;
+        let cardTotalAmount = 0;
+
+        cardTransactions.forEach((transaction) => {
+          cardTotalVolume += transaction.volume;
+          cardTotalAmount += Math.abs(transaction.summa);
+        });
+
+        grandTotalVolume += cardTotalVolume;
+        grandTotalAmount += cardTotalAmount;
+
+        // 1. Сначала добавляем строку с номером карты и общими итогами
+        excelData.push([
+          cardNumber,
+          '',
+          '',
+          '',
+          '',
+          '',
+          cardTotalVolume,
+          '',
+          '',
+          '',
+        ]);
+
         // Группировка по видам топлива
         const fuelMap = new Map<number, typeof cardTransactions>();
         cardTransactions.forEach((transaction) => {
@@ -139,9 +169,7 @@ function CompactExpensesTable({
           fuelMap.get(fuelId)!.push(transaction);
         });
 
-        let cardTotalVolume = 0;
-        let cardTotalAmount = 0;
-
+        // 2. Для каждого вида топлива
         fuelMap.forEach((fuelTransactions, fuelId) => {
           const fuelName =
             nomenclature.find((n) => n.fuelid === fuelId)?.fuelname ||
@@ -150,38 +178,13 @@ function CompactExpensesTable({
           let fuelTotalVolume = 0;
           let fuelTotalAmount = 0;
 
-          // Сортировка транзакций по дате
-          fuelTransactions.sort((a, b) => a.dt.localeCompare(b.dt));
-
-          // Каждая транзакция
+          // Считаем итоги по топливу
           fuelTransactions.forEach((transaction) => {
-            const formattedDateTime = dayjs(transaction.dt).format(
-              'DD.MM.YYYY HH:mm:ss',
-            );
-            const { volume } = transaction;
-            const amount = Math.abs(transaction.summa);
-
-            fuelTotalVolume += volume;
-            fuelTotalAmount += amount;
-
-            excelData.push([
-              '',
-              formattedDateTime,
-              `АЗС №${transaction.azs}`,
-              '',
-              cardNumber,
-              '',
-              volume,
-              transaction.price,
-              transaction.price,
-              amount,
-            ]);
+            fuelTotalVolume += transaction.volume;
+            fuelTotalAmount += Math.abs(transaction.summa);
           });
 
-          cardTotalVolume += fuelTotalVolume;
-          cardTotalAmount += fuelTotalAmount;
-
-          // Строка итога по виду топлива
+          // 2.1. Добавляем строку итога по виду топлива
           excelData.push([
             fuelName,
             '',
@@ -194,27 +197,49 @@ function CompactExpensesTable({
             '',
             fuelTotalAmount,
           ]);
+
+          // Сортировка транзакций по дате
+          fuelTransactions.sort((a, b) => a.dt.localeCompare(b.dt));
+
+          // 2.2. Добавляем все транзакции для этого вида топлива
+          fuelTransactions.forEach((transaction) => {
+            const formattedDateTime = dayjs(transaction.dt).format(
+              'DD.MM.YYYY HH:mm:ss',
+            );
+            const { volume } = transaction;
+            const amount = Math.abs(transaction.summa);
+
+            excelData.push([
+              '',
+              formattedDateTime,
+              `АЗС №${transaction.azs}`,
+              '',
+              `'${cardNumber}`,
+              '',
+              volume,
+              transaction.price,
+              transaction.price,
+              amount,
+            ]);
+          });
         });
-
-        grandTotalVolume += cardTotalVolume;
-        grandTotalAmount += cardTotalAmount;
-
-        // Строка итога по карте
-        excelData.push([
-          cardNumber, // Оставляем как число
-          '',
-          '',
-          '',
-          '',
-          '',
-          cardTotalVolume,
-          '',
-          '',
-          cardTotalAmount,
-        ]);
       });
 
-      // Добавляем пустую строку перед итогами
+      // Обновляем строку итога в начале таблицы
+      excelData[totalRowIndex] = [
+        'Итог',
+        '',
+        '',
+        '',
+        '',
+        '',
+        grandTotalVolume,
+        '',
+        '',
+        grandTotalAmount,
+      ];
+
+      // Добавляем пустую строку перед итогами по видам топлива
       excelData.push(['']);
 
       // Итоговая таблица по видам топлива
@@ -310,10 +335,6 @@ function CompactExpensesTable({
 
             // Форматирование чисел
             if (row >= 2 && typeof cell.v === 'number') {
-              // Карта (колонка E, индекс 4) - отображаем как целое число
-              if (col === 4) {
-                cell.z = '0';
-              }
               // Количество (колонка G, индекс 6)
               if (col === 6) {
                 cell.z = '0.00';

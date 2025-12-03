@@ -15,6 +15,7 @@ function aggregateMonthlyExpenses(
   nomenclature: { fuelid: number; fuelname: string }[] = [],
   startDate?: Date,
   endDate?: Date,
+  availabilityDay: number = 5,
 ): MonthlyExpensesData {
   const fuelMap = new Map(nomenclature.map((n) => [n.fuelid, n.fuelname]));
 
@@ -48,6 +49,14 @@ function aggregateMonthlyExpenses(
     current.setMonth(current.getMonth() + 1);
   }
 
+  // Фильтруем месяцы по дате доступности
+  const availableMonths = monthsInRange.filter((monthKey) => {
+    const [year, month] = monthKey.split('-').map(Number);
+    // Дата доступности: availabilityDay число следующего месяца
+    const monthAvailabilityDate = new Date(year, month, availabilityDay);
+    return currentDate >= monthAvailabilityDate;
+  });
+
   // Группируем транзакции по месяцам
   const monthMap = new Map<string, Map<number, Map<number, FuelExpense>>>();
 
@@ -59,7 +68,7 @@ function aggregateMonthlyExpenses(
     const monthKey = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
 
     // Проверяем, что транзакция в диапазоне
-    if (!monthsInRange.includes(monthKey)) return;
+    if (!availableMonths.includes(monthKey)) return;
 
     if (!monthMap.has(monthKey)) {
       monthMap.set(monthKey, new Map());
@@ -94,7 +103,7 @@ function aggregateMonthlyExpenses(
   let totalAmount = 0;
 
   // Обрабатываем все месяцы в диапазоне (включая пустые)
-  monthsInRange.reverse().forEach((monthKey) => {
+  availableMonths.reverse().forEach((monthKey) => {
     const monthCardMap = monthMap.get(monthKey) || new Map();
     const cards: CardMonthlyExpense[] = [];
     const fuelTotalsMap = new Map<number, FuelExpense>();

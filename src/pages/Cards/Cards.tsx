@@ -152,6 +152,8 @@ function Cards() {
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
 
+  const availabilityDay = 4;
+
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
   );
@@ -311,8 +313,9 @@ function Cards() {
       nomenclature || [],
       startDate.toDate(),
       endDate.toDate(),
+      availabilityDay,
     );
-  }, [transactions, nomenclature, startDate, endDate]);
+  }, [transactions, nomenclature, startDate, endDate, availabilityDay]);
 
   useEffect(() => {
     if (isIdle) {
