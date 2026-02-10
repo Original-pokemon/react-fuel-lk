@@ -3,17 +3,11 @@ import { APIRoute } from '#root/store/api-route';
 import type {
     ReportResponse,
     DownloadReportParams,
-    ReportFormat,
+    FormatConfig,
 } from '#root/types/card-report';
 
-const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
-    const binaryString = window.atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-};
+const base64ToArrayBuffer = (base64: string): ArrayBuffer =>
+    Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
 
 const FORMAT_CONFIG = {
     xlsx: {
@@ -28,12 +22,7 @@ const FORMAT_CONFIG = {
         successMessage: 'Отчет PDF успешно скачан',
         errorMessage: 'Ошибка при скачивании PDF отчета',
     },
-} as const satisfies Record<ReportFormat, {
-    mimeType: string;
-    extension: string;
-    successMessage: string;
-    errorMessage: string
-}>;
+} as const satisfies FormatConfig
 
 export const downloadReport = async ({
     startDate,
@@ -70,7 +59,7 @@ export const downloadReport = async ({
         link.href = url;
 
         const dateRangeStr = `${startDate.format('DD.MM.YYYY')}_${endDate.format('DD.MM.YYYY')}`;
-        const fileName = `Транзации_по_чиповым_картам_${dateRangeStr}.${config.extension}`;
+        const fileName = `Транзакции_по_чиповым_картам_${dateRangeStr}.${config.extension}`;
 
         link.setAttribute('download', fileName);
         document.body.appendChild(link);

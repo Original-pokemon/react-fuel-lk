@@ -15,3 +15,10 @@ export type ReportResponse = {
     pdf: string;
     xlsx: string;
 };
+
+export type FormatConfig = Record<ReportFormat, {
+    mimeType: string;
+    extension: string;
+    successMessage: string;
+    errorMessage: string;
+}>;
