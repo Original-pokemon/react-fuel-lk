@@ -1,5 +1,5 @@
-import { GridToolbar, DataGridProps } from '@mui/x-data-grid';
-import { dataGridClasses, DataGridStyled } from './DataTable.style';
+import { GridToolbar, DataGridProps } from "@mui/x-data-grid";
+import { dataGridClasses, DataGridStyled } from "./DataTable.style";
 
 type Properties = {
   name?: string;
@@ -11,7 +11,7 @@ type Properties = {
 
 function DataTable({
   name,
-  density = 'comfortable',
+  density = "comfortable",
   columns,
   rows,
   filterModel,
@@ -45,7 +45,7 @@ function DataTable({
           printOptions: { disableToolbarButton: true },
           csvOptions: {
             fileName: name,
-            delimiter: ';',
+            delimiter: ";",
             utf8WithBom: true,
           },
         },
@@ -72,4 +72,5 @@ function DataTable({
   );
 }
 
+export { DataTable };
 export default DataTable;
