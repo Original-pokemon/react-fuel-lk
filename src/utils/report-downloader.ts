@@ -6,7 +6,6 @@ import type {
     ReportFormat,
 } from '#root/types/card-report';
 
-// Функция для декодирования base64 в ArrayBuffer
 const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     const binaryString = window.atob(base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -16,7 +15,6 @@ const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     return bytes.buffer;
 };
 
-// Конфигурация для разных форматов
 const FORMAT_CONFIG = {
     xlsx: {
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -53,7 +51,6 @@ export const downloadReport = async ({
             },
         });
 
-        // Получаем base64 строку нужного формата из ответа
         const base64Data = response.data[format];
 
         if (!base64Data) {
@@ -63,32 +60,24 @@ export const downloadReport = async ({
         // Декодируем base64 в бинарные данные
         const arrayBuffer = base64ToArrayBuffer(base64Data);
 
-        // Получаем конфигурацию для выбранного формата
         const config = FORMAT_CONFIG[format];
-
-        // Создаем blob из бинарных данных
         const blob = new Blob([arrayBuffer], {
             type: config.mimeType,
         });
 
-        // Создаем ссылку для скачивания
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
 
-        // Формируем имя файла
         const dateRangeStr = `${startDate.format('DD.MM.YYYY')}_${endDate.format('DD.MM.YYYY')}`;
         const fileName = `Транзации_по_чиповым_картам_${dateRangeStr}.${config.extension}`;
-        link.setAttribute('download', fileName);
 
-        // Добавляем ссылку в DOM, кликаем и удаляем ???
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        // Освобождаем память
         window.URL.revokeObjectURL(url);
-
         toast.success(config.successMessage);
     } catch (error) {
         console.error(`Error downloading ${format.toUpperCase()} report:`, error);
