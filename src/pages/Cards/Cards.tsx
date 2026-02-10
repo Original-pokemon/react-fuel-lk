@@ -427,7 +427,7 @@ function Cards() {
             onDateChange={handleDateChange}
           />
         </div>,
-        <Box key={3}>
+        <Box>
           <Button
             variant="contained"
             color="primary"
