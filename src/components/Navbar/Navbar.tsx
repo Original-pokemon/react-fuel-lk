@@ -17,10 +17,9 @@ import {
   useTheme,
   Box,
 } from '@mui/material';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import { getFirmName, getFirmStatus } from '#root/store/slice/firm/selectors';
-import { logout } from '#root/store';
-import { fetchFirmData } from '#root/store/slice/firm/thunk';
+import { useAuthStore, useFirmStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import Logo from '../logo/Logo';
 
 type NavbarProperties = {
@@ -29,9 +28,13 @@ type NavbarProperties = {
 };
 
 function Navbar({ onMenuClick, className }: NavbarProperties) {
-  const dispatch = useAppDispatch();
-  const { isSuccess, isIdle } = useAppSelector(getFirmStatus);
-  const firmName = useAppSelector(getFirmName);
+  const api = useApi();
+  const { authData, logout } = useAuthStore();
+  const { status, firmInfo, fetchFirmData } = useFirmStore();
+
+  const isIdle = status === Status.Idle;
+  const isSuccess = status === Status.Success;
+  const firmName = firmInfo?.firmname;
 
   const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
 
@@ -47,10 +50,10 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
   };
 
   useEffect(() => {
-    if (!firmName && isIdle) {
-      dispatch(fetchFirmData());
+    if (!firmName && isIdle && authData?.firmId) {
+      fetchFirmData(authData.firmId, api);
     }
-  }, [dispatch, isSuccess, isIdle]);
+  }, [firmName, isIdle, authData?.firmId, fetchFirmData, api]);
 
   return (
     <AppBar position="static" className={className}>
@@ -117,7 +120,7 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
         >
           <MenuItem
             onClick={() => {
-              dispatch(logout());
+              logout();
               handleCloseUserMenu();
             }}
           >

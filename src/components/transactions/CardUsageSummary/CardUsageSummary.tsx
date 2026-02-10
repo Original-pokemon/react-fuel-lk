@@ -6,8 +6,7 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import { useAppSelector } from '#root/hooks/state';
-import { getAllTransactions } from '#root/store';
+import { useTransactionStore } from '#root/store';
 
 type CardData = {
   cardnum: number; // Номер карты
@@ -17,7 +16,9 @@ type CardData = {
 };
 
 function CardUsageSummary() {
-  const transactions = useAppSelector(getAllTransactions);
+  const transactions = useTransactionStore((state) =>
+    state.getAllTransactions(),
+  );
 
   const cardData = useMemo(() => {
     const data: { [key: number]: CardData } = {};

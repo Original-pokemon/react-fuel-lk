@@ -81,7 +81,7 @@ const getContractBodyElement = ({
         </Typography>
         <Typography variant="subtitle2">
           {typeof canSpendRublesWithCredit === 'string' &&
-            Number(canSpendRublesWithCredit) > 999_999_999
+          Number(canSpendRublesWithCredit) > 999_999_999
             ? 'Работа в кредит'
             : canSpendRublesWithCredit
               ? `${formatNumberWithSpaces(Number(canSpendRublesWithCredit))} ₽`

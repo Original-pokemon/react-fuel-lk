@@ -9,30 +9,41 @@ import Contracts from './pages/Contracts/Contracts';
 import Login from './pages/Login/Login';
 import AzsMap from './pages/AzsMap/AzsMap';
 import AuthGuard from './components/AuthGuard/AuthGuard';
-import { useAppDispatch, useAppSelector } from './hooks/state';
 import {
-  getAuthStatus,
-  fetchFirmData,
-  fetchNomenclatureData,
-  fetchApiResponseData,
-  getAuthData,
+  useAuthStore,
+  useAppStore,
+  useApiResponseStore,
+  useFirmStore,
 } from './store';
+import { useApi } from './hooks';
+import { Status } from './const';
 import Layout from './components/layouts/Layout';
 import 'react-toastify/dist/ReactToastify.css';
 import AppRoute from './const/app-route';
 
 function App() {
-  const dispatch = useAppDispatch();
-  const { isSuccess: isAuthSuccess } = useAppSelector(getAuthStatus);
-  const data = useAppSelector(getAuthData);
+  const api = useApi();
+  const { authData, status: authStatus } = useAuthStore();
+  const { fetchNomenclatureData } = useAppStore();
+  const { fetchApiResponseData } = useApiResponseStore();
+  const { fetchFirmData } = useFirmStore();
+
+  const isAuthSuccess = authStatus === Status.Success;
 
   useEffect(() => {
-    if (isAuthSuccess && data) {
-      dispatch(fetchApiResponseData(data.firmId));
-      dispatch(fetchFirmData());
-      dispatch(fetchNomenclatureData());
+    if (isAuthSuccess && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
+      fetchFirmData(authData.firmId, api);
+      fetchNomenclatureData(api);
     }
-  }, [data, dispatch, isAuthSuccess]);
+  }, [
+    isAuthSuccess,
+    authData?.firmId,
+    fetchApiResponseData,
+    fetchFirmData,
+    fetchNomenclatureData,
+    api,
+  ]);
 
   return (
     <>

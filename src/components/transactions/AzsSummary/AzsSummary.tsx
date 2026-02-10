@@ -6,8 +6,7 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import { useAppSelector } from '#root/hooks/state';
-import { getAllTransactions } from '#root/store';
+import { useTransactionStore } from '#root/store';
 
 type AzsData = {
   azs: number;
@@ -17,7 +16,9 @@ type AzsData = {
 };
 
 function AzsSummary() {
-  const transactions = useAppSelector(getAllTransactions);
+  const transactions = useTransactionStore((state) =>
+    state.getAllTransactions(),
+  );
 
   const azsData = useMemo(() => {
     const data: { [key: number]: AzsData } = {};

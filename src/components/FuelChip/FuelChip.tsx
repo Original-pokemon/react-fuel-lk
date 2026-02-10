@@ -1,6 +1,5 @@
 import { Chip, getContrastRatio, useTheme } from '@mui/material';
-import { useAppSelector } from '#root/hooks/state';
-import { getNomenclatureInfo } from '#root/store';
+import { useAppStore } from '#root/store';
 
 type FuelChipProperties = {
   fuelId: number;
@@ -8,7 +7,7 @@ type FuelChipProperties = {
 
 function FuelChip({ fuelId }: FuelChipProperties) {
   const theme = useTheme();
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const { nomenclature } = useAppStore();
 
   const fuel = nomenclature?.find((item) => item.fuelid === fuelId);
   const fuelName = fuel ? fuel.fuelname : 'Неизвестное топливо';

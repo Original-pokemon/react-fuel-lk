@@ -11,14 +11,10 @@ import {
 import HomeIcon from '@mui/icons-material/Home';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import TransactionsTable from '#root/components/transactions/TransactionsTable/TransactionsTable';
-import {
-  fetchTransactions,
-  getAllTransactions,
-  getNomenclatureInfo,
-  getTransactionStatus,
-} from '#root/store';
+import { useTransactionStore, useAppStore, useAuthStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import Spinner from '#root/components/Spinner/Spinner';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import DateRangePicker from '#root/components/transactions/DateRangePicker/DateRangePicker';
 import TransactionsList from '#root/components/transactions/TransactionsList/TransactionsList';
 import SortMenu from '#root/components/SortMenu/SortMenu';
@@ -77,9 +73,18 @@ const FILTER_BY_TRANSACTION_TYPE_NAME = 'filterByTransactionType';
 const FILTER_BY_FUEL_TYPE_NAME = 'filterByFuelType';
 
 function Transitions() {
-  const dispatch = useAppDispatch();
-  const transactions = useAppSelector(getAllTransactions);
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const api = useApi();
+  const { authData } = useAuthStore();
+  const {
+    getAllTransactions,
+    fetchTransactions,
+    status: transactionStatus,
+  } = useTransactionStore();
+  const transactions = getAllTransactions();
+  const { nomenclature } = useAppStore();
+
+  const isLoadingTransactions = transactionStatus === Status.Loading;
+
   const fuelTypeOptions = useMemo(() => {
     if (!nomenclature) {
       return [];
@@ -99,8 +104,6 @@ function Transitions() {
   }, [nomenclature]);
 
   const [searchParameters, setSearchParameters] = useSearchParams();
-  const { isLoading: isLoadingTransactions } =
-    useAppSelector(getTransactionStatus);
 
   // filters
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NAME) || undefined;
@@ -210,15 +213,23 @@ function Transitions() {
   }, [filteredTransactions, currentSortOption]);
 
   useEffect(() => {
-    dispatch(
-      fetchTransactions({
-        firmid: -1,
+    fetchTransactions(
+      {
+        firmid: authData?.firmId || -1,
         cardnum: Number(cardNumber) || -1,
         fromday: startDate.format('YYYY-MM-DD'),
         day: endDate.format('YYYY-MM-DD'),
-      }),
+      },
+      api,
     );
-  }, [dispatch, startDate, endDate, cardNumber]);
+  }, [
+    startDate,
+    endDate,
+    cardNumber,
+    authData?.firmId,
+    fetchTransactions,
+    api,
+  ]);
 
   if (isLoadingTransactions) {
     return <Spinner fullscreen={false} />;

@@ -2,9 +2,7 @@ import { Typography, Box } from '@mui/material';
 import { useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import * as XLSX from 'xlsx';
-import { useAppSelector } from '#root/hooks/state';
-import { getAllTransactions } from '#root/store';
-import { getFirmName } from '#root/store/slice/firm/selectors';
+import { useTransactionStore, useFirmStore } from '#root/store';
 import { MonthlyExpensesData } from '#root/types/monthly-expenses';
 import OverallTotals from './OverallTotals';
 import MonthAccordion from './MonthAccordion';
@@ -24,8 +22,10 @@ function CompactExpensesTable({
 }: CompactExpensesTableProperties) {
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [reportLoading, setReportLoading] = useState<string | undefined>();
-  const transactions = useAppSelector(getAllTransactions);
-  const firmName = useAppSelector(getFirmName);
+  const transactions = useTransactionStore((state) =>
+    state.getAllTransactions(),
+  );
+  const firmName = useFirmStore((state) => state.firmInfo?.firmname);
 
   if (data.months.length === 0) {
     return (

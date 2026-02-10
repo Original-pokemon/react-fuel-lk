@@ -6,8 +6,7 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import { useAppSelector } from '#root/hooks/state';
-import { getAllTransactions, getNomenclatureInfo } from '#root/store';
+import { useTransactionStore, useAppStore } from '#root/store';
 
 type FuelData = {
   fuelId: number;
@@ -18,8 +17,10 @@ type FuelData = {
 };
 
 function FuelSummary() {
-  const transactions = useAppSelector(getAllTransactions);
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const transactions = useTransactionStore((state) =>
+    state.getAllTransactions(),
+  );
+  const { nomenclature } = useAppStore();
 
   const fuelData = useMemo(() => {
     const data: { [key: number]: FuelData } = {};

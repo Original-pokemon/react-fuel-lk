@@ -1,6 +1,6 @@
 import { DataTable } from '#root/components/layouts/data-layouts/DataTable/DataTable';
-import { useAppSelector } from '#root/hooks/state';
-import { getApiResponseStatus } from '#root/store';
+import { useApiResponseStore } from '#root/store';
+import { Status } from '#root/const';
 import Spinner from '#root/components/Spinner/Spinner';
 import { ApiContractType } from '#root/types';
 import ContractColumns from './ContractColumns';
@@ -10,8 +10,12 @@ type ContractTableProperties = {
 };
 
 function ContractTable({ contracts }: ContractTableProperties) {
-  const { isIdle, isLoading, isError, isSuccess } =
-    useAppSelector(getApiResponseStatus);
+  const { status } = useApiResponseStore();
+
+  const isIdle = status === Status.Idle;
+  const isLoading = status === Status.Loading;
+  const isError = status === Status.Error;
+  const isSuccess = status === Status.Success;
 
   const rows = contracts.map(
     ({

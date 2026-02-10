@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import {
-  fetchMapMarkers,
-  getMapMarkers,
-  getMapMarkersStatus,
-  getNomenclatureInfo,
-} from '#root/store';
+import { useMapMarkersStore, useAppStore } from '#root/store';
+import { Status } from '#root/const';
 import { Box, Typography, Breadcrumbs, Link } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import { Link as RouterLink } from 'react-router-dom';
@@ -18,10 +13,9 @@ import ODINTSOVO_COORD from '../../const/map';
 import AppRoute from '../../const/app-route';
 
 function AzsMap() {
-  const dispatch = useAppDispatch();
-  const mapMarkers = useAppSelector(getMapMarkers);
-  const { isLoading } = useAppSelector(getMapMarkersStatus);
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const { data: mapMarkers, status, fetchMapMarkers } = useMapMarkersStore();
+  const { nomenclature } = useAppStore();
+  const isLoading = status === Status.Loading;
 
   const [selectedFilters, setSelectedFilters] = useState<SelectedFiltersType>(
     {},
@@ -41,9 +35,9 @@ function AzsMap() {
 
   useEffect(() => {
     if (!mapMarkers && !isLoading) {
-      dispatch(fetchMapMarkers());
+      fetchMapMarkers();
     }
-  }, [dispatch, mapMarkers, isLoading]);
+  }, [mapMarkers, isLoading, fetchMapMarkers]);
 
   const handleFilterChange = (filters: SelectedFiltersType) => {
     setSelectedFilters(filters);

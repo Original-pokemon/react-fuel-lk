@@ -110,19 +110,19 @@ function CardModal({ card }: CardModalProperties) {
           rows={
             card.wallets
               ? Object.entries(card.wallets).map(([key, value]) => ({
-                label: <FuelChip fuelId={+key} />,
-                value: <Typography variant="body1">{value}</Typography>,
-              }))
+                  label: <FuelChip fuelId={+key} />,
+                  value: <Typography variant="body1">{value}</Typography>,
+                }))
               : [
-                {
-                  label: '',
-                  value: (
-                    <Typography variant="body1">
-                      Нет доступного топлива
-                    </Typography>
-                  ),
-                },
-              ]
+                  {
+                    label: '',
+                    value: (
+                      <Typography variant="body1">
+                        Нет доступного топлива
+                      </Typography>
+                    ),
+                  },
+                ]
           }
           direction="row"
           borderBetweenColumns

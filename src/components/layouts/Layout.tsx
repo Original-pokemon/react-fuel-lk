@@ -9,8 +9,7 @@ import {
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
-import { getApiResponseFirmCardById } from '#root/store';
-import { useAppSelector } from '#root/hooks/state';
+import { useApiResponseStore } from '#root/store';
 import AppRoute from '#root/const/app-route';
 import MainMenu from '../MainMenu/MainMenu';
 import Navbar from '../Navbar/Navbar';
@@ -68,9 +67,7 @@ const menu = [
 function Layout() {
   const [searchParameters] = useSearchParams();
   const cardnumber = Number(searchParameters.get('modalcardnum'));
-  const card = useAppSelector((state) =>
-    getApiResponseFirmCardById(state, cardnumber),
-  );
+  const card = useApiResponseStore((state) => state.getCardById(cardnumber));
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 

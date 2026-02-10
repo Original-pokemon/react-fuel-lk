@@ -1,6 +1,6 @@
 import { DataTable } from '#root/components/layouts/data-layouts/DataTable/DataTable';
-import { useAppSelector } from '#root/hooks/state';
-import { getFirmStatus } from '#root/store';
+import { useFirmStore } from '#root/store';
+import { Status } from '#root/const';
 import Spinner from '#root/components/Spinner/Spinner';
 import { CardInfoType } from '#root/types';
 import CardsColumns from './СardsСolumns';
@@ -10,8 +10,12 @@ type CardsTable = {
 };
 
 function CardTable({ cards }: CardsTable) {
-  const { isIdle, isLoading, isError, isSuccess } =
-    useAppSelector(getFirmStatus);
+  const { status } = useFirmStore();
+
+  const isIdle = status === Status.Idle;
+  const isLoading = status === Status.Loading;
+  const isError = status === Status.Error;
+  const isSuccess = status === Status.Success;
 
   const rows = cards.map(
     ({

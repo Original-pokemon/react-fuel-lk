@@ -19,15 +19,14 @@ import HomeIcon from '@mui/icons-material/Home';
 import CardTable from '#root/components/cards/CardTable/CardTable';
 import CardsList from '#root/components/cards/CardsList/CardsList';
 import MonthlyExpensesView from '#root/components/cards/monthly-expenses/MonthlyExpensesView';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
 import {
-  fetchFirmData,
-  getApiResponseFirmCards,
-  getApiResponseStatus,
-  getAllTransactions,
-  getNomenclatureInfo,
-  fetchTransactions,
+  useApiResponseStore,
+  useTransactionStore,
+  useAppStore,
+  useAuthStore,
 } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import aggregateMonthlyExpenses from '#root/utils/monthly-expenses';
 import Spinner from '#root/components/Spinner/Spinner';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
@@ -125,11 +124,21 @@ const sortOptions = [
 ];
 
 function Cards() {
-  const dispatch = useAppDispatch();
-  const { isIdle, isLoading } = useAppSelector(getApiResponseStatus);
-  const allCards = useAppSelector(getApiResponseFirmCards);
-  const transactions = useAppSelector(getAllTransactions);
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const api = useApi();
+  const { authData } = useAuthStore();
+  const {
+    status: apiResponseStatus,
+    getAllCards,
+    fetchApiResponseData,
+  } = useApiResponseStore();
+  const allCards = getAllCards();
+  const { getAllTransactions, fetchTransactions } = useTransactionStore();
+  const transactions = getAllTransactions();
+  const { nomenclature } = useAppStore();
+
+  const isIdle = apiResponseStatus === Status.Idle;
+  const isLoading = apiResponseStatus === Status.Loading;
+
   const [searchParameters, setSearchParameters] = useSearchParams();
 
   // filters
@@ -318,25 +327,26 @@ function Cards() {
   }, [transactions, nomenclature, startDate, endDate, availabilityDay]);
 
   useEffect(() => {
-    if (isIdle) {
-      dispatch(fetchFirmData());
+    if (isIdle && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
     }
-  }, [dispatch, isIdle]);
+  }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
 
   // Загружаем транзакции для отчета по расходам
   useEffect(() => {
     setIsReportLoading(true);
-    dispatch(
-      fetchTransactions({
-        firmid: -1,
+    fetchTransactions(
+      {
+        firmid: authData?.firmId || -1,
         cardnum: -1, // Получаем все карты
         fromday: startDate.format('YYYY-MM-DD'),
         day: endDate.format('YYYY-MM-DD'),
-      }),
+      },
+      api,
     ).finally(() => {
       setIsReportLoading(false);
     });
-  }, [dispatch, startDate, endDate]);
+  }, [startDate, endDate, authData?.firmId, fetchTransactions, api]);
 
   if (isLoading) {
     return <Spinner fullscreen={false} />;

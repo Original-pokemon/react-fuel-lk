@@ -16,9 +16,9 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Spinner from '#root/components/Spinner/Spinner';
-import { getAuthStatus } from '#root/store';
-import { postAuthData } from '#root/store/slice/auth-data/thunk';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
+import { useAuthStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import AppRoute from '#root/const/app-route';
 
 type LoginFormData = {
@@ -53,9 +53,12 @@ const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
 };
 
 function Login() {
-  const dispatch = useAppDispatch();
-  const { isSuccess, isLoading } = useAppSelector(getAuthStatus);
+  const api = useApi();
+  const { status, postAuthData } = useAuthStore();
   const navigate = useNavigate();
+
+  const isLoading = status === Status.Loading;
+  const isSuccess = status === Status.Success;
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -75,7 +78,7 @@ function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    dispatch(postAuthData(data));
+    await postAuthData(data, api);
   };
 
   const togglePasswordVisibility = () => {

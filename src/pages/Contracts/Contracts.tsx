@@ -11,32 +11,31 @@ import HomeIcon from '@mui/icons-material/Home';
 
 import ContractTable from '#root/components/contracts/ContractTable/ContractTable';
 import ContractList from '#root/components/contracts/ContractList/ContractList';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import {
-  fetchApiResponseData,
-  getApiResponseFirmContracts,
-  getApiResponseStatus,
-  getFirmId,
-} from '#root/store';
+import { useApiResponseStore, useAuthStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import Spinner from '#root/components/Spinner/Spinner';
 import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
 import AppRoute from '#root/const/app-route';
 import ContractsStyledBox from './Contracts.style';
 
 function Contracts() {
-  const dispatch = useAppDispatch();
-  const { isIdle, isLoading } = useAppSelector(getApiResponseStatus);
-  const contracts = useAppSelector(getApiResponseFirmContracts);
-  const firmId = useAppSelector(getFirmId);
+  const api = useApi();
+  const { authData } = useAuthStore();
+  const { firm, status, fetchApiResponseData } = useApiResponseStore();
+
+  const isIdle = status === Status.Idle;
+  const isLoading = status === Status.Loading;
+  const contracts = firm?.contracts;
   const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
   );
 
   useEffect(() => {
-    if (isIdle && firmId) {
-      dispatch(fetchApiResponseData(firmId));
+    if (isIdle && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
     }
-  }, [dispatch, firmId, isIdle]);
+  }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
 
   if (isLoading) {
     return <Spinner fullscreen={false} />;

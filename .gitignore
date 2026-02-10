@@ -26,3 +26,6 @@ yarn.lock
 *.sw?
 
 *storybook.log
+
+# Serena
+.serena/
