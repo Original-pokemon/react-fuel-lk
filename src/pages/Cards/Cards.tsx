@@ -9,8 +9,13 @@ import {
   Tabs,
   Tab,
   Box,
+  Button,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
+import DownloadIcon from '@mui/icons-material/Info';
+import ArrowDropDownIcon from '@mui/icons-material/Info';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -38,6 +43,8 @@ import type { CardInfoType } from '#root/types/api-response';
 import type { SelectedFiltersType } from '#root/components/Filter/types';
 import AppRoute from '#root/const/app-route';
 import CardsStyledBox from './Cards.style';
+import createAPI from '#root/services/api/api';
+import { downloadReport } from '#root/utils/report-downloader';
 
 const cardStatusOptions = [
   { label: 'Все', value: 'all' },
@@ -145,6 +152,9 @@ function Cards() {
     activeTabParameter ? Number.parseInt(activeTabParameter, 10) : 0,
   );
   const [isReportLoading, setIsReportLoading] = useState<boolean>(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
 
   // Date range for transaction filtering
   const [startDate, setStartDate] = useState<Dayjs>(
@@ -235,6 +245,33 @@ function Cards() {
 
     if (newEndDate) {
       setEndDate(newEndDate);
+    }
+  };
+
+  const handleDownloadMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleDownloadMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDownload = async (format: 'xlsx' | 'pdf') => {
+    handleDownloadMenuClose();
+    setIsDownloading(true);
+    try {
+      const api = createAPI();
+      await downloadReport({
+        startDate,
+        endDate,
+        format: format,
+        firmid: 0, // Откуда брать firmid?
+        api,
+      });
+    } catch (error) {
+      console.error(`Failed to download ${format} report:`, error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -388,6 +425,39 @@ function Cards() {
             onDateChange={handleDateChange}
           />
         </div>,
+        <Box key={3}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            onClick={handleDownloadMenuClick}
+            disabled={isDownloading}
+            sx={{ height: 'fit-content' }}
+          >
+            {isDownloading ? 'Загрузка...' : 'Скачать отчет'}
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={isMenuOpen}
+            onClose={handleDownloadMenuClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={() => handleDownload('xlsx')} disabled={isDownloading}>
+              Скачать Excel (.xlsx)
+            </MenuItem>
+            <MenuItem onClick={() => handleDownload('pdf')} disabled={isDownloading}>
+              Скачать PDF (.pdf)
+            </MenuItem>
+          </Menu>
+        </Box>,
         <Filter key={2} onChange={handleApplyFilters}>
           <Filter.FilterTextField
             id={FILTER_BY_CARD_NUMBER_NAME}

@@ -6,4 +6,5 @@ export const APIRoute = {
   Transaction: '/cc/t',
   FullData: 'online/full',
   MapMarkers: '/api/map-markers',
+  Report: 'online/report',
 } as const;
