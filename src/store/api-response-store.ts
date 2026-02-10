@@ -1,34 +1,32 @@
-import { create } from 'zustand';
-import { AxiosInstance } from 'axios';
+import { create } from "zustand";
+import { AxiosInstance } from "axios";
 import type {
   StatusType,
   ApiResponseType,
   FirmDataType,
   CardInfoType,
-} from '#root/types';
-import { Status } from '#root/const';
-import { APIRoute } from './api-route';
-import { adaptApiResponse } from '../utils/api-adapter';
+} from "#root/types";
+import { Status } from "#root/const";
+import { APIRoute } from "./api-route";
+import { adaptApiResponse } from "../utils/api-adapter";
 
 interface ApiResponseState {
   status: StatusType;
-  fuelnames?: ApiResponseType['fuelNames'];
-  pricetypes?: ApiResponseType['priceTypes'];
+  fuelnames?: ApiResponseType["fuelNames"];
+  pricetypes?: ApiResponseType["priceTypes"];
   firm?: FirmDataType;
   data?: ApiResponseType;
-  cards: Map<number, CardInfoType>;
+  cards: CardInfoType[];
   fetchApiResponseData: (firmId: number, api: AxiosInstance) => Promise<void>;
-  getCardById: (id: number) => CardInfoType | undefined;
-  getAllCards: () => CardInfoType[];
 }
 
-export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
+export const useApiResponseStore = create<ApiResponseState>((set) => ({
   status: Status.Idle,
   data: undefined,
   fuelnames: undefined,
   firm: undefined,
   pricetypes: undefined,
-  cards: new Map(),
+  cards: [],
 
   fetchApiResponseData: async (firmId, api) => {
     set({ status: Status.Loading });
@@ -46,13 +44,11 @@ export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
       } = adaptedData;
 
       const firmData = firms.find((f: FirmDataType) => f.firmId === firmId);
-      const cardsMap = new Map<number, CardInfoType>();
-
-      if (firmData) {
-        Object.values(firmData.cards || {}).forEach((card) => {
-          cardsMap.set(card.cardNumber, card);
-        });
-      }
+      const cardsList = firmData
+        ? Object.values(firmData.cards || {}).sort(
+            (a, b) => a.cardNumber - b.cardNumber,
+          )
+        : [];
 
       set({
         status: Status.Success,
@@ -60,20 +56,10 @@ export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
         fuelnames: adaptedData.fuelNames,
         pricetypes: adaptedData.priceTypes,
         firm: firmData,
-        cards: cardsMap,
+        cards: cardsList,
       });
     } catch {
       set({ status: Status.Error });
     }
-  },
-
-  getCardById: (id) => {
-    return get().cards.get(id);
-  },
-
-  getAllCards: () => {
-    return Array.from(get().cards.values()).sort(
-      (a, b) => a.cardNumber - b.cardNumber,
-    );
   },
 }));

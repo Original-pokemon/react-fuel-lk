@@ -1,11 +1,11 @@
-import { Typography, Box } from '@mui/material';
-import { useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import * as XLSX from 'xlsx';
-import { useTransactionStore, useFirmStore } from '#root/store';
-import { MonthlyExpensesData } from '#root/types/monthly-expenses';
-import OverallTotals from './OverallTotals';
-import MonthAccordion from './MonthAccordion';
+import { Typography, Box } from "@mui/material";
+import { useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+import * as XLSX from "xlsx";
+import { useTransactionStore, useFirmStore } from "#root/store";
+import { MonthlyExpensesData } from "#root/types/monthly-expenses";
+import OverallTotals from "./OverallTotals";
+import MonthAccordion from "./MonthAccordion";
 
 type CompactExpensesTableProperties = {
   data: MonthlyExpensesData;
@@ -22,9 +22,7 @@ function CompactExpensesTable({
 }: CompactExpensesTableProperties) {
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [reportLoading, setReportLoading] = useState<string | undefined>();
-  const transactions = useTransactionStore((state) =>
-    state.getAllTransactions(),
-  );
+  const { transactions } = useTransactionStore();
   const firmName = useFirmStore((state) => state.firmInfo?.firmname);
 
   if (data.months.length === 0) {
@@ -32,7 +30,7 @@ function CompactExpensesTable({
       <Typography
         variant="body1"
         color="text.secondary"
-        sx={{ textAlign: 'center', mt: 4 }}
+        sx={{ textAlign: "center", mt: 4 }}
       >
         Нет данных о расходах за выбранный период
       </Typography>
@@ -58,30 +56,30 @@ function CompactExpensesTable({
     try {
       if (nomenclature.length === 0) {
         alert(
-          'Номенклатура не загружена. Пожалуйста, подождите загрузки данных.',
+          "Номенклатура не загружена. Пожалуйста, подождите загрузки данных.",
         );
         return;
       }
 
       if (!firmName) {
         alert(
-          'Информация о фирме не загружена. Пожалуйста, подождите загрузки данных.',
+          "Информация о фирме не загружена. Пожалуйста, подождите загрузки данных.",
         );
         return;
       }
 
-      const [year, month] = monthKey.split('-');
-      const reportStartDate = `${year}-${month.padStart(2, '0')}-01`;
+      const [year, month] = monthKey.split("-");
+      const reportStartDate = `${year}-${month.padStart(2, "0")}-01`;
       const reportEndDate = new Date(
         Number.parseInt(year, 10),
         Number.parseInt(month, 10),
         0,
       );
-      const reportEndDateString = reportEndDate.toISOString().split('T')[0];
+      const reportEndDateString = reportEndDate.toISOString().split("T")[0];
 
       // Фильтруем существующие транзакции за месяц
       const monthTransactions = transactions.filter((transaction) => {
-        const transactionDate = transaction.dt.split(' ')[0];
+        const transactionDate = transaction.dt.split(" ")[0];
         return (
           transactionDate >= reportStartDate &&
           transactionDate <= reportEndDateString
@@ -93,29 +91,29 @@ function CompactExpensesTable({
 
       // Заголовки
       const headers = [
-        'День /Номенклатура',
-        'Дата время',
-        'АЗС',
-        'Адрес',
-        'Карта',
-        'Держатель',
-        'Количество',
-        'Цена на АЗС',
-        'Цена',
-        'Сумма',
+        "День /Номенклатура",
+        "Дата время",
+        "АЗС",
+        "Адрес",
+        "Карта",
+        "Держатель",
+        "Количество",
+        "Цена на АЗС",
+        "Цена",
+        "Сумма",
       ];
 
       const excelData: (string | number)[][] = [];
 
       // Заголовок отчета
       excelData.push([
-        `Расход по чиповым картам с ${reportStartDate.split('-').reverse().join('.')} по ${reportEndDateString.split('-').reverse().join('.')} ${firmName}`,
+        `Расход по чиповым картам с ${reportStartDate.split("-").reverse().join(".")} по ${reportEndDateString.split("-").reverse().join(".")} ${firmName}`,
       ]);
       excelData.push(headers);
 
       // Строка итога сразу после заголовков
       const totalRowIndex = excelData.length;
-      excelData.push(['Итог', '', '', '', '', '', 0, '', '', 0]);
+      excelData.push(["Итог", "", "", "", "", "", 0, "", "", 0]);
 
       // Группировка транзакций по картам
       const cardMap = new Map<number, typeof monthTransactions>();
@@ -148,15 +146,15 @@ function CompactExpensesTable({
         // 1. Сначала добавляем строку с номером карты и общими итогами
         excelData.push([
           cardNumber,
-          '',
-          '',
-          '',
-          '',
-          '',
+          "",
+          "",
+          "",
+          "",
+          "",
           cardTotalVolume,
-          '',
-          '',
-          '',
+          "",
+          "",
+          "",
         ]);
 
         // Группировка по видам топлива
@@ -187,14 +185,14 @@ function CompactExpensesTable({
           // 2.1. Добавляем строку итога по виду топлива
           excelData.push([
             fuelName,
-            '',
-            '',
-            '',
-            '',
-            '',
+            "",
+            "",
+            "",
+            "",
+            "",
             fuelTotalVolume,
-            '',
-            '',
+            "",
+            "",
             fuelTotalAmount,
           ]);
 
@@ -204,18 +202,18 @@ function CompactExpensesTable({
           // 2.2. Добавляем все транзакции для этого вида топлива
           fuelTransactions.forEach((transaction) => {
             const formattedDateTime = dayjs(transaction.dt).format(
-              'DD.MM.YYYY HH:mm:ss',
+              "DD.MM.YYYY HH:mm:ss",
             );
             const { volume } = transaction;
             const amount = Math.abs(transaction.summa);
 
             excelData.push([
-              '',
+              "",
               formattedDateTime,
               `АЗС №${transaction.azs}`,
-              '',
+              "",
               `'${cardNumber}`,
-              '',
+              "",
               volume,
               transaction.price,
               transaction.price,
@@ -227,23 +225,23 @@ function CompactExpensesTable({
 
       // Обновляем строку итога в начале таблицы
       excelData[totalRowIndex] = [
-        'Итог',
-        '',
-        '',
-        '',
-        '',
-        '',
+        "Итог",
+        "",
+        "",
+        "",
+        "",
+        "",
         grandTotalVolume,
-        '',
-        '',
+        "",
+        "",
         grandTotalAmount,
       ];
 
       // Добавляем пустую строку перед итогами по видам топлива
-      excelData.push(['']);
+      excelData.push([""]);
 
       // Итоговая таблица по видам топлива
-      excelData.push(['Итог:', '', 'Количество', '', 'Сумма']);
+      excelData.push(["Итог:", "", "Количество", "", "Сумма"]);
 
       // Собираем итоги по каждому виду топлива
       const fuelTotalsMap = new Map<
@@ -266,14 +264,14 @@ function CompactExpensesTable({
         const fuelName =
           nomenclature.find((n) => n.fuelid === fuelId)?.fuelname ||
           `Топливо ${fuelId}`;
-        excelData.push([fuelName, '', total.volume, '', total.amount]);
+        excelData.push([fuelName, "", total.volume, "", total.amount]);
       });
 
       // Создаем worksheet
       const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
       // Настройка ширины столбцов
-      worksheet['!cols'] = [
+      worksheet["!cols"] = [
         { wch: 20 }, // День /Номенклатура
         { wch: 20 }, // Дата время
         { wch: 15 }, // АЗС
@@ -287,30 +285,30 @@ function CompactExpensesTable({
       ];
 
       // Форматирование чисел и добавление границ
-      if (worksheet['!ref']) {
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
+      if (worksheet["!ref"]) {
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
         // Определяем стиль границ
         const borderStyle = {
-          top: { style: 'thin', color: { rgb: '000000' } },
-          bottom: { style: 'thin', color: { rgb: '000000' } },
-          left: { style: 'thin', color: { rgb: '000000' } },
-          right: { style: 'thin', color: { rgb: '000000' } },
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
         };
 
         // Стиль для заголовка (жирный + границы)
         const headerStyle = {
           font: { bold: true },
-          alignment: { horizontal: 'center', vertical: 'center' },
+          alignment: { horizontal: "center", vertical: "center" },
           border: borderStyle,
-          fill: { fgColor: { rgb: 'D3D3D3' } },
+          fill: { fgColor: { rgb: "D3D3D3" } },
         };
 
         // Стиль для итоговых строк
         const totalStyle = {
           font: { bold: true },
           border: borderStyle,
-          fill: { fgColor: { rgb: 'FFFF99' } },
+          fill: { fgColor: { rgb: "FFFF99" } },
         };
 
         for (let row = 0; row <= range.e.r; row++) {
@@ -334,27 +332,27 @@ function CompactExpensesTable({
             }
 
             // Форматирование чисел
-            if (row >= 2 && typeof cell.v === 'number') {
+            if (row >= 2 && typeof cell.v === "number") {
               // Количество (колонка G, индекс 6)
               if (col === 6) {
-                cell.z = '0.00';
+                cell.z = "0.00";
               }
               // Цена на АЗС (колонка H, индекс 7)
               if (col === 7) {
-                cell.z = '0.00';
+                cell.z = "0.00";
               }
               // Цена (колонка I, индекс 8)
               if (col === 8) {
-                cell.z = '0.00';
+                cell.z = "0.00";
               }
               // Сумма (колонка J, индекс 9)
               if (col === 9) {
-                cell.z = '0.00';
+                cell.z = "0.00";
               }
             }
 
             // Выделяем строки с итогами (содержат название топлива или номер карты без даты)
-            const cellValueStr = String(cell.v || '');
+            const cellValueStr = String(cell.v || "");
             const isFirstColumn = col === 0;
             const nextCell =
               worksheet[XLSX.utils.encode_cell({ r: row, c: 1 })];
@@ -376,40 +374,40 @@ function CompactExpensesTable({
       }
 
       // Добавляем автофильтр к заголовкам
-      worksheet['!autofilter'] = { ref: `A2:J2` };
+      worksheet["!autofilter"] = { ref: `A2:J2` };
 
       // Закрепляем строки (заголовок и строку с названиями столбцов)
-      worksheet['!freeze'] = {
+      worksheet["!freeze"] = {
         xSplit: 0,
         ySplit: 2,
-        topLeftCell: 'A3',
-        activePane: 'bottomLeft',
+        topLeftCell: "A3",
+        activePane: "bottomLeft",
       };
 
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Отчет');
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Отчет");
       const excelBuffer = XLSX.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
+        bookType: "xlsx",
+        type: "array",
         cellStyles: true,
       });
       const blob = new Blob([excelBuffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
       // Создаем и скачиваем файл
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
+      link.setAttribute("href", url);
       link.setAttribute(
-        'download',
+        "download",
         `расход_по_чиповым_картам_${monthData.monthName.toLowerCase()}.xlsx`,
       );
-      link.style.visibility = 'hidden';
+      link.style.visibility = "hidden";
       document.body.append(link);
       link.click();
       link.remove();
     } catch (error) {
-      console.error('Ошибка при формировании отчета:', error);
+      console.error("Ошибка при формировании отчета:", error);
     } finally {
       setReportLoading(undefined);
     }
@@ -418,8 +416,8 @@ function CompactExpensesTable({
   return (
     <Box>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        Расходы по картам с {startDate.format('DD.MM.YYYY')} по{' '}
-        {endDate.format('DD.MM.YYYY')}
+        Расходы по картам с {startDate.format("DD.MM.YYYY")} по{" "}
+        {endDate.format("DD.MM.YYYY")}
       </Typography>
 
       {/* Общие итоги */}

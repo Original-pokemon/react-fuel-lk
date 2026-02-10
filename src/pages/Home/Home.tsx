@@ -50,16 +50,14 @@ function Home() {
     firm: firmInfo,
     status: apiResponseStatus,
     fetchApiResponseData,
-    getAllCards,
+    cards,
   } = useApiResponseStore();
-  const cards = getAllCards();
   const {
     nomenclature,
     status: appStatus,
     fetchNomenclatureData,
   } = useAppStore();
-  const { getAllTransactions, fetchTransactions } = useTransactionStore();
-  const transactions = getAllTransactions();
+  const { transactions, fetchTransactions } = useTransactionStore();
   const {
     data: mapMarkers,
     status: mapMarkersStatus,

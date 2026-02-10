@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-} from '@mui/material';
-import { useTransactionStore } from '#root/store';
+} from "@mui/material";
+import { useTransactionStore } from "#root/store";
 
 type AzsData = {
   azs: number;
@@ -16,9 +16,7 @@ type AzsData = {
 };
 
 function AzsSummary() {
-  const transactions = useTransactionStore((state) =>
-    state.getAllTransactions(),
-  );
+  const { transactions } = useTransactionStore();
 
   const azsData = useMemo(() => {
     const data: { [key: number]: AzsData } = {};

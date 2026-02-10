@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { Grid, Card, CardContent, Typography } from '@mui/material';
-import { useApiResponseStore } from '#root/store';
-import { formatNumberWithSpaces } from '#root/utils/format-number';
+import { useMemo } from "react";
+import { Grid, Card, CardContent, Typography } from "@mui/material";
+import { useApiResponseStore } from "#root/store";
+import { formatNumberWithSpaces } from "#root/utils/format-number";
 
 function CardsSummary() {
-  const cards = useApiResponseStore((state) => state.getAllCards());
+  const { cards } = useApiResponseStore();
 
   const { totalCards, activeCards, blockedCards, totalFuelVolume } =
     useMemo(() => {

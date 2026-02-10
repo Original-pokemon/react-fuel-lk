@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-} from '@mui/material';
-import { useTransactionStore, useAppStore } from '#root/store';
+} from "@mui/material";
+import { useTransactionStore, useAppStore } from "#root/store";
 
 type FuelData = {
   fuelId: number;
@@ -17,9 +17,7 @@ type FuelData = {
 };
 
 function FuelSummary() {
-  const transactions = useTransactionStore((state) =>
-    state.getAllTransactions(),
-  );
+  const { transactions } = useTransactionStore();
   const { nomenclature } = useAppStore();
 
   const fuelData = useMemo(() => {
@@ -29,7 +27,7 @@ function FuelSummary() {
       const fuelId = transaction.fuelid;
       const fuelName =
         nomenclature?.find((n) => n.fuelid === fuelId)?.fuelname ||
-        'Неизвестно';
+        "Неизвестно";
 
       if (!data[fuelId]) {
         data[fuelId] = {

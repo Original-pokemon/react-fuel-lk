@@ -1,43 +1,43 @@
-import { Outlet, useSearchParams } from 'react-router-dom';
+import { Outlet, useSearchParams } from "react-router-dom";
 import {
   Home as HomeIcon,
   CreditCard as CreditCardIcon,
   Receipt as ReceiptIcon,
   Map as MapIcon,
   Description as DescriptionIcon,
-} from '@mui/icons-material';
-import { Box, useMediaQuery, useTheme } from '@mui/material';
-import { createPortal } from 'react-dom';
-import { useState } from 'react';
-import { useApiResponseStore } from '#root/store';
-import AppRoute from '#root/const/app-route';
-import MainMenu from '../MainMenu/MainMenu';
-import Navbar from '../Navbar/Navbar';
-import LayoutStyleBox from './Layout.style';
-import CardModal from '../cards/CardModal/CardModal';
-import SideMenu from '../SideMenu/SideMenu';
-import Footer from '../Footer/Footer';
+} from "@mui/icons-material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { createPortal } from "react-dom";
+import { useState } from "react";
+import { useApiResponseStore } from "#root/store";
+import AppRoute from "#root/const/app-route";
+import MainMenu from "../MainMenu/MainMenu";
+import Navbar from "../Navbar/Navbar";
+import LayoutStyleBox from "./Layout.style";
+import CardModal from "../cards/CardModal/CardModal";
+import SideMenu from "../SideMenu/SideMenu";
+import Footer from "../Footer/Footer";
 
 const menu = [
   {
     id: 1,
-    title: 'Основное',
+    title: "Основное",
     listItems: [
       {
         id: 1,
-        title: 'Главная',
+        title: "Главная",
         url: AppRoute.Main,
         icon: <HomeIcon />,
       },
       {
         id: 2,
-        title: 'Договоры',
+        title: "Договоры",
         url: AppRoute.Contracts,
         icon: <DescriptionIcon />,
       },
       {
         id: 4,
-        title: 'Карта АЗС',
+        title: "Карта АЗС",
         url: AppRoute.AzsMap,
         icon: <MapIcon />,
       },
@@ -45,18 +45,18 @@ const menu = [
   },
   {
     id: 2,
-    title: 'О картах',
+    title: "О картах",
     listItems: [
       {
         id: 1,
-        title: 'Карты',
+        title: "Карты",
         url: AppRoute.Cards,
         icon: <CreditCardIcon />,
       },
 
       {
         id: 3,
-        title: 'Транзакции',
+        title: "Транзакции",
         url: AppRoute.Transaction,
         icon: <ReceiptIcon />,
       },
@@ -66,10 +66,12 @@ const menu = [
 
 function Layout() {
   const [searchParameters] = useSearchParams();
-  const cardnumber = Number(searchParameters.get('modalcardnum'));
-  const card = useApiResponseStore((state) => state.getCardById(cardnumber));
+  const cardnumber = Number(searchParameters.get("modalcardnum"));
+  const card = useApiResponseStore((state) =>
+    state.cards.find((c) => c.cardNumber === cardnumber),
+  );
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 

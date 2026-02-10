@@ -9,52 +9,52 @@ import {
   Tabs,
   Tab,
   Box,
-} from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
-import { Link as RouterLink, useSearchParams } from 'react-router-dom';
-import { useEffect, useMemo, useCallback, useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import HomeIcon from '@mui/icons-material/Home';
+} from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useCallback, useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+import HomeIcon from "@mui/icons-material/Home";
 
-import CardTable from '#root/components/cards/CardTable/CardTable';
-import CardsList from '#root/components/cards/CardsList/CardsList';
-import MonthlyExpensesView from '#root/components/cards/monthly-expenses/MonthlyExpensesView';
+import CardTable from "#root/components/cards/CardTable/CardTable";
+import CardsList from "#root/components/cards/CardsList/CardsList";
+import MonthlyExpensesView from "#root/components/cards/monthly-expenses/MonthlyExpensesView";
 import {
   useApiResponseStore,
   useTransactionStore,
   useAppStore,
   useAuthStore,
-} from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import aggregateMonthlyExpenses from '#root/utils/monthly-expenses';
-import Spinner from '#root/components/Spinner/Spinner';
-import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
-import Filter from '#root/components/Filter/Filter';
-import SortMenu from '#root/components/SortMenu/SortMenu';
-import DateRangePicker from '#root/components/transactions/DateRangePicker/DateRangePicker';
-import type { CardInfoType } from '#root/types/api-response';
-import type { SelectedFiltersType } from '#root/components/Filter/types';
-import AppRoute from '#root/const/app-route';
-import CardsStyledBox from './Cards.style';
+} from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import aggregateMonthlyExpenses from "#root/utils/monthly-expenses";
+import Spinner from "#root/components/Spinner/Spinner";
+import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
+import Filter from "#root/components/Filter/Filter";
+import SortMenu from "#root/components/SortMenu/SortMenu";
+import DateRangePicker from "#root/components/transactions/DateRangePicker/DateRangePicker";
+import type { CardInfoType } from "#root/types/api-response";
+import type { SelectedFiltersType } from "#root/components/Filter/types";
+import AppRoute from "#root/const/app-route";
+import CardsStyledBox from "./Cards.style";
 
 const cardStatusOptions = [
-  { label: 'Все', value: 'all' },
-  { label: 'Активные', value: 'active' },
-  { label: 'Заблокированные', value: 'blocked' },
+  { label: "Все", value: "all" },
+  { label: "Активные", value: "active" },
+  { label: "Заблокированные", value: "blocked" },
 ];
 
 const walletTypeOptions = [
-  { label: 'Все', value: 'all' },
-  { label: 'Кошелек', value: '1' },
-  { label: 'Лимитный', value: '2' },
+  { label: "Все", value: "all" },
+  { label: "Кошелек", value: "1" },
+  { label: "Лимитный", value: "2" },
 ];
 
 const cardSostOptions = [
-  { label: 'Выдана', value: 'выдана' },
-  { label: 'Испорчена', value: 'испорчена' },
-  { label: 'Утеряна', value: 'утеряна' },
-  { label: 'Черный список', value: 'чс' },
+  { label: "Выдана", value: "выдана" },
+  { label: "Испорчена", value: "испорчена" },
+  { label: "Утеряна", value: "утеряна" },
+  { label: "Черный список", value: "чс" },
 ];
 
 const filterCards = (
@@ -69,15 +69,15 @@ const filterCards = (
   return cards.filter((card) => {
     // Фильтрация по статусу карты
     let statusMatch = true;
-    if (cardStatus === 'active') {
+    if (cardStatus === "active") {
       statusMatch = card.blocked === 0;
-    } else if (cardStatus === 'blocked') {
+    } else if (cardStatus === "blocked") {
       statusMatch = card.blocked === 1;
     }
 
     // Фильтрация по типу кошелька
     let walletMatch = true;
-    if (walletType !== 'all') {
+    if (walletType !== "all") {
       walletMatch = card.walletType === Number(walletType);
     }
 
@@ -93,7 +93,7 @@ const filterCards = (
       sostMatch = cardSost.includes(card.sost);
     } else {
       // По умолчанию показывать только карты со статусом "Выдана"
-      sostMatch = card.sost === 'выдана';
+      sostMatch = card.sost === "выдана";
     }
 
     // Фильтрация по дате последней операции
@@ -104,23 +104,23 @@ const filterCards = (
     } else if (startDate && endDate && card.date) {
       const lastOpDate = dayjs(card.date);
       dateMatch =
-        lastOpDate.isAfter(startDate.subtract(1, 'day')) &&
-        lastOpDate.isBefore(endDate.add(1, 'day'));
+        lastOpDate.isAfter(startDate.subtract(1, "day")) &&
+        lastOpDate.isBefore(endDate.add(1, "day"));
     }
 
     return statusMatch && walletMatch && numberMatch && sostMatch && dateMatch;
   });
 };
 
-const FILTER_BY_CARD_NUMBER_NAME = 'filterByCardNumber';
-const FILTER_BY_CARD_STATUS_NAME = 'filterByCardStatus';
-const FILTER_BY_WALLET_TYPE_NAME = 'filterByWalletType';
-const FILTER_BY_CARD_SOST_NAME = 'filterByCardSost';
-const ACTIVE_TAB_NAME = 'tab';
+const FILTER_BY_CARD_NUMBER_NAME = "filterByCardNumber";
+const FILTER_BY_CARD_STATUS_NAME = "filterByCardStatus";
+const FILTER_BY_WALLET_TYPE_NAME = "filterByWalletType";
+const FILTER_BY_CARD_SOST_NAME = "filterByCardSost";
+const ACTIVE_TAB_NAME = "tab";
 
 const sortOptions = [
-  { label: 'По умолчанию', value: 'default' },
-  { label: 'По последней транзакции', value: 'lastTransaction' },
+  { label: "По умолчанию", value: "default" },
+  { label: "По последней транзакции", value: "lastTransaction" },
 ];
 
 function Cards() {
@@ -128,12 +128,10 @@ function Cards() {
   const { authData } = useAuthStore();
   const {
     status: apiResponseStatus,
-    getAllCards,
+    cards: allCards,
     fetchApiResponseData,
   } = useApiResponseStore();
-  const allCards = getAllCards();
-  const { getAllTransactions, fetchTransactions } = useTransactionStore();
-  const transactions = getAllTransactions();
+  const { transactions, fetchTransactions } = useTransactionStore();
   const { nomenclature } = useAppStore();
 
   const isIdle = apiResponseStatus === Status.Idle;
@@ -142,13 +140,13 @@ function Cards() {
   const [searchParameters, setSearchParameters] = useSearchParams();
 
   // filters
-  const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || '';
+  const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || "";
   const cardStatus =
-    searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || 'active';
-  const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || 'all';
+    searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || "active";
+  const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || "all";
   const cardSostString = searchParameters.get(FILTER_BY_CARD_SOST_NAME);
-  const cardSost = cardSostString ? cardSostString.split(',') : ['выдана'];
-  const [currentSortOption, setCurrentSortOption] = useState<string>('default');
+  const cardSost = cardSostString ? cardSostString.split(",") : ["выдана"];
+  const [currentSortOption, setCurrentSortOption] = useState<string>("default");
   const activeTabParameter = searchParameters.get(ACTIVE_TAB_NAME);
   const [activeTab, setActiveTab] = useState<number>(
     activeTabParameter ? Number.parseInt(activeTabParameter, 10) : 0,
@@ -157,14 +155,14 @@ function Cards() {
 
   // Date range for transaction filtering
   const [startDate, setStartDate] = useState<Dayjs>(
-    dayjs().subtract(6, 'month').startOf('month'),
+    dayjs().subtract(6, "month").startOf("month"),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
 
   const availabilityDay = 4;
 
   const isSmallScreen = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
+    theme.breakpoints.down("sm"),
   );
 
   const handleApplyFilters = useCallback(
@@ -189,7 +187,7 @@ function Cards() {
         if (selectedFilters[FILTER_BY_CARD_STATUS_NAME]) {
           const { options } = selectedFilters[FILTER_BY_CARD_STATUS_NAME];
           const { value } = options[0];
-          if (value === 'active') {
+          if (value === "active") {
             newParameters.delete(FILTER_BY_CARD_STATUS_NAME);
           } else {
             newParameters.set(FILTER_BY_CARD_STATUS_NAME, value);
@@ -202,7 +200,7 @@ function Cards() {
         if (selectedFilters[FILTER_BY_WALLET_TYPE_NAME]) {
           const { options } = selectedFilters[FILTER_BY_WALLET_TYPE_NAME];
           const { value } = options[0];
-          if (value === 'all') {
+          if (value === "all") {
             newParameters.delete(FILTER_BY_WALLET_TYPE_NAME);
           } else {
             newParameters.set(FILTER_BY_WALLET_TYPE_NAME, value);
@@ -216,7 +214,7 @@ function Cards() {
           const { options } = selectedFilters[FILTER_BY_CARD_SOST_NAME];
           const valueList = options.map((option) => option.value);
           if (valueList.length > 0) {
-            newParameters.set(FILTER_BY_CARD_SOST_NAME, valueList.join(','));
+            newParameters.set(FILTER_BY_CARD_SOST_NAME, valueList.join(","));
           } else {
             newParameters.delete(FILTER_BY_CARD_SOST_NAME);
           }
@@ -287,7 +285,7 @@ function Cards() {
 
   const sortedCards = useMemo(() => {
     const cardsCopy = [...filteredCards];
-    if (currentSortOption === 'lastTransaction') {
+    if (currentSortOption === "lastTransaction") {
       // Sort by last transaction date within the selected range
       cardsCopy.sort((a, b) => {
         const aLastTransaction = cardLastTransactionMap.get(
@@ -339,8 +337,8 @@ function Cards() {
       {
         firmid: authData?.firmId || -1,
         cardnum: -1, // Получаем все карты
-        fromday: startDate.format('YYYY-MM-DD'),
-        day: endDate.format('YYYY-MM-DD'),
+        fromday: startDate.format("YYYY-MM-DD"),
+        day: endDate.format("YYYY-MM-DD"),
       },
       api,
     ).finally(() => {
@@ -377,17 +375,17 @@ function Cards() {
         <div key="date-filter-section">
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '8px',
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "8px",
             }}
           >
-            <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+            <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
               Фильтрация карт по дате последней операции
             </Typography>
             <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
-              <IconButton size="small" sx={{ padding: '2px' }}>
+              <IconButton size="small" sx={{ padding: "2px" }}>
                 <InfoIcon fontSize="small" color="action" />
               </IconButton>
             </Tooltip>
@@ -423,7 +421,7 @@ function Cards() {
             id={FILTER_BY_CARD_SOST_NAME}
             title="Состояние"
             options={cardSostOptions}
-            defaultValue={['выдана']}
+            defaultValue={["выдана"]}
           />
         </Filter>,
       ]}
@@ -454,12 +452,12 @@ function Cards() {
             }}
             sx={{
               borderBottom: 1,
-              borderColor: 'divider',
+              borderColor: "divider",
               mb: 2,
-              '& .MuiTab-root': {
-                color: 'text.primary',
-                '&.Mui-selected': {
-                  color: 'text.primary',
+              "& .MuiTab-root": {
+                color: "text.primary",
+                "&.Mui-selected": {
+                  color: "text.primary",
                 },
               },
             }}
@@ -482,10 +480,10 @@ function Cards() {
             (isReportLoading ? (
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: '200px',
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minHeight: "200px",
                 }}
               >
                 <Spinner fullscreen={false} />

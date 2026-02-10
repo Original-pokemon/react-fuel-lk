@@ -7,10 +7,10 @@ function CardDetails() {
   const { id: cardnum } = useParams<{ id: string }>();
   const api = useApi();
   const { authData } = useAuthStore();
-  const { getCardById, fetchApiResponseData } = useApiResponseStore();
+  const { cards, fetchApiResponseData } = useApiResponseStore();
 
   const cardNumber = Number(cardnum);
-  const card = getCardById(cardNumber);
+  const card = cards.find((c) => c.cardNumber === cardNumber);
 
   useEffect(() => {
     if (!card && authData?.firmId) {

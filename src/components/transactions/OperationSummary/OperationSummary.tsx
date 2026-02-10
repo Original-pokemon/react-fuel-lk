@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
-import { Grid, Card, CardContent, Typography } from '@mui/material';
-import { useTransactionStore } from '#root/store';
+import { useMemo } from "react";
+import { Grid, Card, CardContent, Typography } from "@mui/material";
+import { useTransactionStore } from "#root/store";
 
 function OperationSummary() {
-  const transactions = useTransactionStore((state) =>
-    state.getAllTransactions(),
-  );
+  const { transactions } = useTransactionStore();
 
   const { totalDebit, totalCredit, netBalance } = useMemo(() => {
     let totalDebitResult = 0;

@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
+import { useEffect, useState, useMemo, useCallback } from "react";
+import dayjs, { Dayjs } from "dayjs";
 import {
   Box,
   Breadcrumbs,
@@ -7,41 +7,41 @@ import {
   Theme,
   Typography,
   useMediaQuery,
-} from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
-import { Link as RouterLink, useSearchParams } from 'react-router-dom';
-import TransactionsTable from '#root/components/transactions/TransactionsTable/TransactionsTable';
-import { useTransactionStore, useAppStore, useAuthStore } from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import Spinner from '#root/components/Spinner/Spinner';
-import DateRangePicker from '#root/components/transactions/DateRangePicker/DateRangePicker';
-import TransactionsList from '#root/components/transactions/TransactionsList/TransactionsList';
-import SortMenu from '#root/components/SortMenu/SortMenu';
-import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
-import Filter from '#root/components/Filter/Filter';
-import type { TransactionType } from '#root/types';
-import AppRoute from '#root/const/app-route';
+} from "@mui/material";
+import HomeIcon from "@mui/icons-material/Home";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import TransactionsTable from "#root/components/transactions/TransactionsTable/TransactionsTable";
+import { useTransactionStore, useAppStore, useAuthStore } from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import Spinner from "#root/components/Spinner/Spinner";
+import DateRangePicker from "#root/components/transactions/DateRangePicker/DateRangePicker";
+import TransactionsList from "#root/components/transactions/TransactionsList/TransactionsList";
+import SortMenu from "#root/components/SortMenu/SortMenu";
+import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
+import Filter from "#root/components/Filter/Filter";
+import type { TransactionType } from "#root/types";
+import AppRoute from "#root/const/app-route";
 import type {
   FilterOption,
   SelectedFiltersType,
-} from '#root/components/Filter/types';
+} from "#root/components/Filter/types";
 
 const lastTransactionsOption = {
-  label: 'Последние ',
-  value: 'last',
+  label: "Последние ",
+  value: "last",
 };
 const firstTransactionsOption = {
-  label: 'Первые',
-  value: 'first',
+  label: "Первые",
+  value: "first",
 };
 
 const sortOptions = [lastTransactionsOption, firstTransactionsOption];
 
 const transactionTypeOptions = [
-  { label: 'Все', value: 'all' },
-  { label: 'Списание', value: '-1' },
-  { label: 'Пополнение', value: '1' },
+  { label: "Все", value: "all" },
+  { label: "Списание", value: "-1" },
+  { label: "Пополнение", value: "1" },
 ];
 
 const filterTransactions = (
@@ -53,7 +53,7 @@ const filterTransactions = (
     // Фильтрация по transactionType
     let transactionTypeMatch = true;
 
-    if (transactionType !== 'all') {
+    if (transactionType !== "all") {
       transactionTypeMatch = transaction.op === Number(transactionType);
     }
 
@@ -68,19 +68,18 @@ const filterTransactions = (
   });
 };
 
-const FILTER_BY_CARD_NAME = 'filterbycard';
-const FILTER_BY_TRANSACTION_TYPE_NAME = 'filterByTransactionType';
-const FILTER_BY_FUEL_TYPE_NAME = 'filterByFuelType';
+const FILTER_BY_CARD_NAME = "filterbycard";
+const FILTER_BY_TRANSACTION_TYPE_NAME = "filterByTransactionType";
+const FILTER_BY_FUEL_TYPE_NAME = "filterByFuelType";
 
 function Transitions() {
   const api = useApi();
   const { authData } = useAuthStore();
   const {
-    getAllTransactions,
+    transactions,
     fetchTransactions,
     status: transactionStatus,
   } = useTransactionStore();
-  const transactions = getAllTransactions();
   const { nomenclature } = useAppStore();
 
   const isLoadingTransactions = transactionStatus === Status.Loading;
@@ -108,21 +107,21 @@ function Transitions() {
   // filters
   const cardNumber = searchParameters.get(FILTER_BY_CARD_NAME) || undefined;
   const transactionType =
-    searchParameters.get(FILTER_BY_TRANSACTION_TYPE_NAME) || 'all';
+    searchParameters.get(FILTER_BY_TRANSACTION_TYPE_NAME) || "all";
   const fuelTypeString = searchParameters.get(FILTER_BY_FUEL_TYPE_NAME);
-  const fuelType = fuelTypeString ? fuelTypeString.split(',') : [];
+  const fuelType = fuelTypeString ? fuelTypeString.split(",") : [];
   const [startDate, setStartDate] = useState<Dayjs>(
-    dayjs().subtract(6, 'month').startOf('month'),
+    dayjs().subtract(6, "month").startOf("month"),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
   const [currentSortOption, setCurrentSortOption] = useState<string>(
     lastTransactionsOption.value,
   );
 
-  const tableName = `transactions-${startDate.format('YYYY-MM-DD')}-${endDate.format('YYYY-MM-DD')}`;
+  const tableName = `transactions-${startDate.format("YYYY-MM-DD")}-${endDate.format("YYYY-MM-DD")}`;
 
   const isSmallScreen = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
+    theme.breakpoints.down("sm"),
   );
 
   const handleDateChange = (
@@ -160,7 +159,7 @@ function Transitions() {
         if (selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME]) {
           const { options } = selectedFilters[FILTER_BY_TRANSACTION_TYPE_NAME];
           const { value } = options[0];
-          if (value === 'all') {
+          if (value === "all") {
             newParameters.delete(FILTER_BY_TRANSACTION_TYPE_NAME);
           } else {
             newParameters.set(FILTER_BY_TRANSACTION_TYPE_NAME, value);
@@ -174,7 +173,7 @@ function Transitions() {
           const { options } = selectedFilters[FILTER_BY_FUEL_TYPE_NAME];
           const valueList = options.map((option) => option.value);
           if (valueList.length > 0) {
-            newParameters.set(FILTER_BY_FUEL_TYPE_NAME, valueList.join(','));
+            newParameters.set(FILTER_BY_FUEL_TYPE_NAME, valueList.join(","));
           } else {
             newParameters.delete(FILTER_BY_FUEL_TYPE_NAME);
           }
@@ -217,8 +216,8 @@ function Transitions() {
       {
         firmid: authData?.firmId || -1,
         cardnum: Number(cardNumber) || -1,
-        fromday: startDate.format('YYYY-MM-DD'),
-        day: endDate.format('YYYY-MM-DD'),
+        fromday: startDate.format("YYYY-MM-DD"),
+        day: endDate.format("YYYY-MM-DD"),
       },
       api,
     );
@@ -267,7 +266,7 @@ function Transitions() {
           <Filter.FilterTextField
             id={FILTER_BY_CARD_NAME}
             title="Номер карты"
-            defaultValue={cardNumber || ''}
+            defaultValue={cardNumber || ""}
           />
 
           <Filter.SingleChoice
@@ -295,7 +294,7 @@ function Transitions() {
       content={
         <Box
           className="transactions-table"
-          bgcolor={isSmallScreen ? 'background.default' : 'background.paper'}
+          bgcolor={isSmallScreen ? "background.default" : "background.paper"}
           padding={2}
           borderRadius="10px"
         >

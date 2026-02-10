@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { AxiosInstance } from 'axios';
-import type { StatusType, TransactionType } from '#root/types';
-import { Status } from '#root/const';
-import { APIRoute } from './api-route';
+import { create } from "zustand";
+import { AxiosInstance } from "axios";
+import type { StatusType, TransactionType } from "#root/types";
+import { Status } from "#root/const";
+import { APIRoute } from "./api-route";
 
 type FetchTransactionsParametersType = {
   firmid: number;
@@ -15,17 +15,16 @@ const COUNT = 1_000_000;
 
 interface TransactionState {
   status: StatusType;
-  transactions: Map<string, TransactionType>;
+  transactions: TransactionType[];
   fetchTransactions: (
     parameters: FetchTransactionsParametersType,
     api: AxiosInstance,
   ) => Promise<void>;
-  getAllTransactions: () => TransactionType[];
 }
 
-export const useTransactionStore = create<TransactionState>((set, get) => ({
+export const useTransactionStore = create<TransactionState>((set) => ({
   status: Status.Idle,
-  transactions: new Map(),
+  transactions: [],
 
   fetchTransactions: async (parameters, api) => {
     set({ status: Status.Loading });
@@ -42,24 +41,16 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         },
       });
 
-      const transactionsMap = new Map<string, TransactionType>();
-      data.forEach((transaction) => {
-        const id = `${transaction.dt}-${transaction.cardnum}`;
-        transactionsMap.set(id, transaction);
-      });
+      const sorted = [...data].sort(
+        (a, b) => new Date(b.dt).getTime() - new Date(a.dt).getTime(),
+      );
 
       set({
         status: Status.Success,
-        transactions: transactionsMap,
+        transactions: sorted,
       });
     } catch {
       set({ status: Status.Error });
     }
-  },
-
-  getAllTransactions: () => {
-    return Array.from(get().transactions.values()).sort(
-      (a, b) => new Date(b.dt).getTime() - new Date(a.dt).getTime(),
-    );
   },
 }));
