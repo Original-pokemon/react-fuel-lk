@@ -17,12 +17,14 @@ function AuthGuard(): React.JSX.Element {
     if (isIdle && token) {
       dispatch(fetchAuthInfo());
     }
+  }, [dispatch, isIdle, token]);
 
+  useEffect(() => {
     if (isError || !token) {
       navigate(AppRoute.Login);
       dispatch(logout());
     }
-  }, [dispatch, isIdle, isError, token, navigate]);
+  }, [isError, token, navigate, dispatch]);
 
   if (isLoading) {
     return <Spinner fullscreen={false} size={100} />;
