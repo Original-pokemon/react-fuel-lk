@@ -31,6 +31,7 @@ import {
   getApiResponseStatus,
   getAllTransactions,
   getNomenclatureInfo,
+  getFirmId,
   fetchTransactions,
 } from '#root/store';
 import aggregateMonthlyExpenses from '#root/utils/monthly-expenses';
@@ -137,6 +138,7 @@ function Cards() {
   const allCards = useAppSelector(getApiResponseFirmCards);
   const transactions = useAppSelector(getAllTransactions);
   const nomenclature = useAppSelector(getNomenclatureInfo);
+  const firmId = useAppSelector(getFirmId);
   const [searchParameters, setSearchParameters] = useSearchParams();
 
   // filters
@@ -265,7 +267,7 @@ function Cards() {
         startDate,
         endDate,
         format: format,
-        firmid: 0, // Откуда брать firmid?
+        firmId: firmId,
         api,
       });
     } catch (error) {

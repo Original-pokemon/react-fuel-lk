@@ -7,7 +7,7 @@ export type DownloadReportParams = {
     startDate: Dayjs;
     endDate: Dayjs;
     format: ReportFormat;
-    firmid?: number;
+    firmId?: number;
     api: AxiosInstance;
 };
 

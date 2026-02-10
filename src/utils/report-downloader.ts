@@ -28,7 +28,7 @@ export const downloadReport = async ({
     startDate,
     endDate,
     format,
-    firmid,
+    firmId,
     api,
 }: DownloadReportParams): Promise<void> => {
     try {
@@ -36,7 +36,7 @@ export const downloadReport = async ({
             params: {
                 fromdate: startDate.format('DD.MM.YYYY'),
                 todate: endDate.format('DD.MM.YYYY'),
-                firmid,
+                firmId,
             },
         });
 
