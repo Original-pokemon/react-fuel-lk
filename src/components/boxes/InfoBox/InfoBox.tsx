@@ -1,6 +1,6 @@
-import { Box, Stack, Typography } from '@mui/material';
-import { Fragment } from 'react';
-import InfoStyledBox from './InfoBox.style';
+import { Stack, Typography } from "@mui/material";
+import { Fragment } from "react";
+import InfoStyledBox from "./InfoBox.style";
 
 type InfoItem = Record<string, string | number | JSX.Element>;
 
@@ -19,7 +19,7 @@ function InfoBox({ title, data }: InfoBoxProperties) {
         {data.map((item) => (
           <Stack
             className="listItem"
-            key={title + Object.keys(item).join(',')}
+            key={title + Object.keys(item).join(",")}
             direction="row"
             alignContent="flex-start"
           >

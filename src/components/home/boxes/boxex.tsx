@@ -1,10 +1,10 @@
-import dayjs from 'dayjs';
-import isBetween from 'dayjs/plugin/isBetween';
-import { CardType, TransactionType } from '#root/types';
-import DashboardCard from '../DashboardCard/DashboardCard';
-import KPIBox from '../KPIBox/KPIBox';
-import ChartBox from '../ChartBox/ChartBox';
-import DataListTable from '../DataListBox/DataListBox';
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+import { CardType, TransactionType } from "#root/types";
+import DashboardCard from "../DashboardCard/DashboardCard";
+import KPIBox from "../KPIBox/KPIBox";
+import ChartBox from "../ChartBox/ChartBox";
+import DataListTable from "../DataListBox/DataListBox";
 
 dayjs.extend(isBetween);
 
@@ -19,7 +19,7 @@ export function TransactionsKpiCard({
 }: TransactionsKpiCardProperties) {
   // Фильтруем транзакции за последние `periodDays` дней
   const end = dayjs();
-  const start = end.subtract(periodDays, 'day');
+  const start = end.subtract(periodDays, "day");
 
   const periodTransactions = transactions.filter((tx) =>
     dayjs(tx.dt).isBetween(start, end),
@@ -56,7 +56,7 @@ export function FuelUsageChartCard({
   periodDays = 7,
 }: FuelUsageChartCardProperties) {
   const end = dayjs();
-  const start = end.subtract(periodDays, 'day');
+  const start = end.subtract(periodDays, "day");
 
   const periodTransactions = transactions.filter(
     (tx) => dayjs(tx.dt).isBetween(start, end) && tx.op === -1,
@@ -72,7 +72,7 @@ export function FuelUsageChartCard({
   const chartData = Object.entries(volumeByFuel).map(([fid, vol]) => {
     const fuelInfo = nomenclature.find((n) => n.fuelid === Number(fid));
     return {
-      name: fuelInfo ? fuelInfo.fuelname : 'Неизвестно',
+      name: fuelInfo ? fuelInfo.fuelname : "Неизвестно",
       value: vol,
     };
   });
@@ -94,13 +94,13 @@ export function ExpenseDynamicsChartCard({
   periodDays = 30,
 }: ExpenseDynamicsChartCardProperties) {
   const end = dayjs();
-  const start = end.subtract(periodDays, 'day');
+  const start = end.subtract(periodDays, "day");
 
   const dailyExpenses: Record<string, number> = {};
 
   // Initialize daily expenses for the last `periodDays`
   for (let index = 0; index < periodDays; index++) {
-    const date = dayjs(start).add(index, 'day').format('DD.MM');
+    const date = dayjs(start).add(index, "day").format("DD.MM");
     dailyExpenses[date] = 0;
   }
 
@@ -109,14 +109,14 @@ export function ExpenseDynamicsChartCard({
   );
 
   for (const tx of periodTransactions) {
-    const date = dayjs(tx.dt).format('DD.MM');
+    const date = dayjs(tx.dt).format("DD.MM");
     dailyExpenses[date] = (dailyExpenses[date] || 0) + tx.summa;
   }
 
   const chartData = Object.entries(dailyExpenses)
     .sort(([dateA], [dateB]) => {
-      const [dayA, monthA] = dateA.split('.').map(Number);
-      const [dayB, monthB] = dateB.split('.').map(Number);
+      const [dayA, monthA] = dateA.split(".").map(Number);
+      const [dayB, monthB] = dateB.split(".").map(Number);
       return (
         dayjs()
           .month(monthA - 1)
@@ -154,7 +154,7 @@ export function OrganizationBalanceCard({
       <KPIBox label="Баланс" value={`${confirmedBalance.toFixed(2)} руб.`} />
       <KPIBox
         label="Задолженность"
-        value={debt ? `${debt.toFixed(2)} руб.` : 'Нет данных'}
+        value={debt ? `${debt.toFixed(2)} руб.` : "Нет данных"}
       />
     </DashboardCard>
   );
@@ -165,6 +165,9 @@ type CardsInfoCardProperties = {
 };
 
 export function CardsInfoCard({ cards }: CardsInfoCardProperties) {
+  const totalCards = cards.length;
+  const blockedCards = cards.filter((card) => card.blocked).length;
+
   return (
     <DashboardCard title="Топливные карты">
       <KPIBox label="Всего карт" value={totalCards} />
@@ -185,7 +188,7 @@ export function FuelBalanceCard({
   const chartData = fuelWallet.map((w) => {
     const fuelInfo = nomenclature.find((n) => n.fuelid === w.fuelid);
     return {
-      name: fuelInfo ? fuelInfo.fuelname : 'Неизвестно',
+      name: fuelInfo ? fuelInfo.fuelname : "Неизвестно",
       value: w.remain,
     };
   });
@@ -211,7 +214,7 @@ export function TopUsedCardsCard({
   count = 3,
 }: TopUsedCardsCardProperties) {
   const end = dayjs();
-  const start = end.subtract(periodDays, 'day');
+  const start = end.subtract(periodDays, "day");
 
   const periodTx = transactions.filter(
     (tx) => dayjs(tx.dt).isBetween(start, end) && tx.op === -1,

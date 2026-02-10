@@ -1,14 +1,13 @@
-import { FormControl, Slider, Typography } from '@mui/material';
-import type { onChange } from '@mui/types';
-import React from 'react';
-import Actions from '../../const';
+import { FormControl, Slider, Typography } from "@mui/material";
+import React from "react";
+import Actions from "../../const";
 import {
   useSelectedFiltersDispatch,
   useSelectedFiltersState,
-} from '../../hooks';
-import { FilterSectionType } from '../../types';
+} from "../../hooks";
+import { FilterSectionType } from "../../types";
 
-type SliderChoiceComponentProperties = Omit<FilterSectionType, 'options'> & {
+type SliderChoiceComponentProperties = Omit<FilterSectionType, "options"> & {
   defaultValue: number;
   marks: { value: number; label: string }[];
   step: number;
@@ -26,10 +25,7 @@ function SliderChoice({
 
   const selected = selectedFilters[id]?.options[0]?.value || defaultValue;
 
-  const handleChange: onChange = (
-    _event: Event,
-    selectedValue: number | number[],
-  ) => {
+  const handleChange = (_event: Event, selectedValue: number | number[]) => {
     if (selectedValue) {
       dispatch({
         type: Actions.ADD_FILTER,
