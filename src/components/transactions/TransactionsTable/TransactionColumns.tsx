@@ -1,6 +1,16 @@
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { green, red } from '@mui/material/colors';
+import { formatNumberWithSpaces } from '#root/utils/format-number';
 import FuelChip from '../../FuelChip/FuelChip';
+
+const FuelName = {
+  14: 'АИ-92',
+  15: 'АИ-95',
+  19: 'АИ-95 PROF',
+  21: 'АИ-100 PROF',
+  17: 'ДТ',
+  18: 'ГАЗ',
+};
 
 const transactionColumns: GridColDef[] = [
   {
@@ -13,26 +23,48 @@ const transactionColumns: GridColDef[] = [
     field: 'summa',
     headerName: 'Сумма',
     width: 100,
+    valueFormatter: (value: string) =>
+      Number(value).toFixed(2).replace('.', ',').replace('-', ''),
     renderCell: (parameters: GridRenderCellParams) => (
       <span style={{ color: parameters.row.op === -1 ? red[500] : green[500] }}>
-        {parameters.value}
+        {formatNumberWithSpaces(Number(parameters.value))}
       </span>
     ),
   },
-  { field: 'volume', headerName: 'Объем', width: 100 },
+  {
+    field: 'volume',
+    headerName: 'Объем',
+    width: 100,
+    valueFormatter: (value: string) =>
+      Number(value).toFixed(2).replace('.', ','),
+    renderCell: (parameters: GridRenderCellParams) => (
+      <span>{formatNumberWithSpaces(Number(parameters.value))}</span>
+    ),
+  },
   {
     field: 'fuelid',
     headerName: 'Топливо',
     width: 150,
+    valueFormatter: (value) => FuelName[value] ?? 'Неизвестное топливо',
     renderCell: (parameters: GridRenderCellParams) => (
       <FuelChip fuelId={parameters.value} />
     ),
   },
-  { field: 'price', headerName: 'Цена', width: 100 },
+  {
+    field: 'price',
+    headerName: 'Цена',
+    width: 100,
+    valueFormatter: (value: string) =>
+      Number(value).toFixed(2).replace('.', ','),
+    renderCell: (parameters: GridRenderCellParams) => (
+      <span>{formatNumberWithSpaces(Number(parameters.value))}</span>
+    ),
+  },
   {
     field: 'op',
     headerName: 'Тип операции',
     width: 150,
+    valueFormatter: (value) => (value === -1 ? 'Списание' : 'Пополнение'),
     renderCell: (parameters: GridRenderCellParams) => (
       <span style={{ color: parameters.row.op === -1 ? red[500] : green[500] }}>
         {parameters.value === -1 ? 'Списание' : 'Пополнение'}

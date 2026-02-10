@@ -18,4 +18,6 @@ export type FirmInfoType = {
   firmcash: FirmCashType; // Кассовый баланс фирмы
   firmwallet: FuelWalletType[]; // Кошелек фирмы по топливам
   cards: CardType[]; // Список карт фирмы
+  canSpendRublesWithCredit: number | string; // Можно потратить рублей с кредитом
+  canSpendStringRublesо: number | string; // Можем потратить строка рублей
 };

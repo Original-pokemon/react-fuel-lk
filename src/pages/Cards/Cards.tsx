@@ -4,113 +4,356 @@ import {
   Theme,
   Typography,
   useMediaQuery,
-} from '@mui/material';
-import { Link as RouterLink, useSearchParams } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
-import HomeIcon from '@mui/icons-material/Home';
+  Tooltip,
+  IconButton,
+  Tabs,
+  Tab,
+  Box,
+} from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useCallback, useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+import HomeIcon from "@mui/icons-material/Home";
 
-import CardTable from '#root/components/cards/CardTable/CardTable';
-import CardsList from '#root/components/cards/CardsList/CardsList';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import { fetchFirmData, getFirmCards, getFirmStatus } from '#root/store';
-import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
-import AppRoute from '#root/const/app-route';
-import Filter from '#root/components/Filter/Filter';
-import { SelectedFiltersType } from '#root/components/Filter/types';
-import { CardType } from '#root/types';
-import CardsStyledBox from './Cards.style';
-
-const cardTypeOptions = [
-  { label: 'Кошелёк', value: '1' },
-  { label: 'Пополнение', value: '2' },
-  { label: 'Разовая', value: '3' },
-];
+import CardTable from "#root/components/cards/CardTable/CardTable";
+import CardsList from "#root/components/cards/CardsList/CardsList";
+import MonthlyExpensesView from "#root/components/cards/monthly-expenses/MonthlyExpensesView";
+import {
+  useApiResponseStore,
+  useTransactionStore,
+  useAppStore,
+  useAuthStore,
+} from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import aggregateMonthlyExpenses from "#root/utils/monthly-expenses";
+import Spinner from "#root/components/Spinner/Spinner";
+import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
+import Filter from "#root/components/Filter/Filter";
+import SortMenu from "#root/components/SortMenu/SortMenu";
+import DateRangePicker from "#root/components/transactions/DateRangePicker/DateRangePicker";
+import type { CardInfoType } from "#root/types/api-response";
+import type { SelectedFiltersType } from "#root/components/Filter/types";
+import AppRoute from "#root/const/app-route";
+import CardsStyledBox from "./Cards.style";
 
 const cardStatusOptions = [
-  { label: 'Все', value: 'all' },
-  { label: 'Активна', value: 'false' },
-  { label: 'Заблокирована', value: 'true' },
+  { label: "Все", value: "all" },
+  { label: "Активные", value: "active" },
+  { label: "Заблокированные", value: "blocked" },
 ];
 
-const FILTER_BY_LIMIT_STATUS = 'limit_status';
-const FILTER_BY_CARD_STATUS = 'card_status';
-const FILTER_BY_CARD_TYPE = 'card_type';
+const walletTypeOptions = [
+  { label: "Все", value: "all" },
+  { label: "Кошелек", value: "1" },
+  { label: "Лимитный", value: "2" },
+];
+
+const cardSostOptions = [
+  { label: "Выдана", value: "выдана" },
+  { label: "Испорчена", value: "испорчена" },
+  { label: "Утеряна", value: "утеряна" },
+  { label: "Черный список", value: "чс" },
+];
 
 const filterCards = (
-  cards: CardType[],
+  cards: CardInfoType[],
   cardStatus: string,
-  cardType: number[],
-): CardType[] => {
+  walletType: string,
+  cardNumber: string,
+  cardSost: string[],
+  startDate?: Dayjs,
+  endDate?: Dayjs,
+): CardInfoType[] => {
   return cards.filter((card) => {
-    const cardStatusMatch =
-      cardStatus === 'all' ? true : card.blocked === Boolean(cardStatus);
+    // Фильтрация по статусу карты
+    let statusMatch = true;
+    if (cardStatus === "active") {
+      statusMatch = card.blocked === 0;
+    } else if (cardStatus === "blocked") {
+      statusMatch = card.blocked === 1;
+    }
 
-    const cardTypeMatch =
-      cardType.length > 0 ? cardType.includes(card.wallettype) : true;
+    // Фильтрация по типу кошелька
+    let walletMatch = true;
+    if (walletType !== "all") {
+      walletMatch = card.walletType === Number(walletType);
+    }
 
-    let cardLimitStatusMatch = true
+    // Фильтрация по номеру карты
+    let numberMatch = true;
+    if (cardNumber.trim()) {
+      numberMatch = card.cardNumber.toString().includes(cardNumber.trim());
+    }
 
-    card.lgr
+    // Фильтрация по состоянию карты
+    let sostMatch = true;
+    if (cardSost.length > 0) {
+      sostMatch = cardSost.includes(card.sost);
+    } else {
+      // По умолчанию показывать только карты со статусом "Выдана"
+      sostMatch = card.sost === "выдана";
+    }
 
-    return cardStatusMatch && cardTypeMatch;
+    // Фильтрация по дате последней операции
+    let dateMatch = true;
+    if (cardNumber.trim()) {
+      // Если задан номер карты, не фильтруем по дате
+      dateMatch = true;
+    } else if (startDate && endDate && card.date) {
+      const lastOpDate = dayjs(card.date);
+      dateMatch =
+        lastOpDate.isAfter(startDate.subtract(1, "day")) &&
+        lastOpDate.isBefore(endDate.add(1, "day"));
+    }
+
+    return statusMatch && walletMatch && numberMatch && sostMatch && dateMatch;
   });
 };
 
+const FILTER_BY_CARD_NUMBER_NAME = "filterByCardNumber";
+const FILTER_BY_CARD_STATUS_NAME = "filterByCardStatus";
+const FILTER_BY_WALLET_TYPE_NAME = "filterByWalletType";
+const FILTER_BY_CARD_SOST_NAME = "filterByCardSost";
+const ACTIVE_TAB_NAME = "tab";
+
+const sortOptions = [
+  { label: "По умолчанию", value: "default" },
+  { label: "По последней транзакции", value: "lastTransaction" },
+];
+
 function Cards() {
-  const dispatch = useAppDispatch();
-  const { isIdle, isLoading } = useAppSelector(getFirmStatus);
-  const cards = useAppSelector(getFirmCards);
-  const isSmallScreen = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
-  );
+  const api = useApi();
+  const { authData } = useAuthStore();
+  const {
+    status: apiResponseStatus,
+    cards: allCards,
+    fetchApiResponseData,
+  } = useApiResponseStore();
+  const { transactions, fetchTransactions } = useTransactionStore();
+  const { nomenclature } = useAppStore();
+
+  const isIdle = apiResponseStatus === Status.Idle;
+  const isLoading = apiResponseStatus === Status.Loading;
+
   const [searchParameters, setSearchParameters] = useSearchParams();
-  const cardStatusParameter =
-    searchParameters.get(FILTER_BY_CARD_STATUS) || undefined;
-  const [cardStatus, setCardStatus] = useState<string>('all');
-  const cardLimitStatusParameter =
-    searchParameters.get(FILTER_BY_LIMIT_STATUS) || 100;
-  const [cardLimitStatus, setCardLimitStatus] = useState<number>(
-    +cardLimitStatusParameter,
+
+  // filters
+  const cardNumber = searchParameters.get(FILTER_BY_CARD_NUMBER_NAME) || "";
+  const cardStatus =
+    searchParameters.get(FILTER_BY_CARD_STATUS_NAME) || "active";
+  const walletType = searchParameters.get(FILTER_BY_WALLET_TYPE_NAME) || "all";
+  const cardSostString = searchParameters.get(FILTER_BY_CARD_SOST_NAME);
+  const cardSost = cardSostString ? cardSostString.split(",") : ["выдана"];
+  const [currentSortOption, setCurrentSortOption] = useState<string>("default");
+  const activeTabParameter = searchParameters.get(ACTIVE_TAB_NAME);
+  const [activeTab, setActiveTab] = useState<number>(
+    activeTabParameter ? Number.parseInt(activeTabParameter, 10) : 0,
   );
-  const cardTypeParameter = searchParameters.get(FILTER_BY_LIMIT_STATUS) || 0;
-  const [cardType, setCardType] = useState<number[]>([]);
+  const [isReportLoading, setIsReportLoading] = useState<boolean>(false);
+
+  // Date range for transaction filtering
+  const [startDate, setStartDate] = useState<Dayjs>(
+    dayjs().subtract(6, "month").startOf("month"),
+  );
+  const [endDate, setEndDate] = useState<Dayjs>(dayjs());
+
+  const availabilityDay = 4;
+
+  const isSmallScreen = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm"),
+  );
 
   const handleApplyFilters = useCallback(
     (selectedFilters: SelectedFiltersType) => {
-      if (selectedFilters[FILTER_BY_LIMIT_STATUS]) {
-        setCardLimitStatus(
-          +selectedFilters[FILTER_BY_LIMIT_STATUS].options[0].value,
-        );
-      } else {
-        setCardLimitStatus(100);
-      }
+      setSearchParameters((previous) => {
+        const newParameters = new URLSearchParams(previous);
 
-      if (selectedFilters[FILTER_BY_CARD_STATUS]) {
-        setCardStatus(selectedFilters[FILTER_BY_CARD_STATUS].options[0].value);
-      } else {
-        setCardStatus('all');
-      }
+        // Handle card number filter
+        if (selectedFilters[FILTER_BY_CARD_NUMBER_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_CARD_NUMBER_NAME];
+          const { value } = options[0];
+          if (value.trim()) {
+            newParameters.set(FILTER_BY_CARD_NUMBER_NAME, value.trim());
+          } else {
+            newParameters.delete(FILTER_BY_CARD_NUMBER_NAME);
+          }
+        } else if (cardNumber) {
+          newParameters.delete(FILTER_BY_CARD_NUMBER_NAME);
+        }
 
-      if (selectedFilters[FILTER_BY_CARD_TYPE]) {
-        const { options } = selectedFilters[FILTER_BY_CARD_TYPE];
-        const valueList = options.map((option) => +option.value);
-        setCardType(valueList);
-      } else {
-        setCardType([]);
-      }
+        // Handle card status filter
+        if (selectedFilters[FILTER_BY_CARD_STATUS_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_CARD_STATUS_NAME];
+          const { value } = options[0];
+          if (value === "active") {
+            newParameters.delete(FILTER_BY_CARD_STATUS_NAME);
+          } else {
+            newParameters.set(FILTER_BY_CARD_STATUS_NAME, value);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_CARD_STATUS_NAME);
+        }
+
+        // Handle wallet type filter
+        if (selectedFilters[FILTER_BY_WALLET_TYPE_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_WALLET_TYPE_NAME];
+          const { value } = options[0];
+          if (value === "all") {
+            newParameters.delete(FILTER_BY_WALLET_TYPE_NAME);
+          } else {
+            newParameters.set(FILTER_BY_WALLET_TYPE_NAME, value);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_WALLET_TYPE_NAME);
+        }
+
+        // Handle card sost filter
+        if (selectedFilters[FILTER_BY_CARD_SOST_NAME]) {
+          const { options } = selectedFilters[FILTER_BY_CARD_SOST_NAME];
+          const valueList = options.map((option) => option.value);
+          if (valueList.length > 0) {
+            newParameters.set(FILTER_BY_CARD_SOST_NAME, valueList.join(","));
+          } else {
+            newParameters.delete(FILTER_BY_CARD_SOST_NAME);
+          }
+        } else {
+          newParameters.delete(FILTER_BY_CARD_SOST_NAME);
+        }
+
+        return newParameters;
+      });
     },
-    [cardStatus, cardLimitStatus],
+    [cardNumber, setSearchParameters],
   );
 
-  useEffect(() => {
-    if (isIdle) {
-      dispatch(fetchFirmData());
+  const handleSortChange = (option: string) => {
+    setCurrentSortOption(option);
+  };
+
+  const handleDateChange = (
+    newStartDate: Dayjs | null,
+    newEndDate: Dayjs | null,
+  ) => {
+    if (newStartDate) {
+      setStartDate(newStartDate);
     }
-  }, [dispatch, isIdle]);
+
+    if (newEndDate) {
+      setEndDate(newEndDate);
+    }
+  };
+
+  // Create a map of card numbers to their last transaction date from card data
+  const cardLastTransactionMap = useMemo(() => {
+    const map = new Map<string, Date>();
+    allCards.forEach((card) => {
+      if (card.date) {
+        const lastOpDate = new Date(card.date);
+        // Check if last operation is within the selected date range
+        if (
+          lastOpDate >= startDate.toDate() &&
+          lastOpDate <= endDate.toDate()
+        ) {
+          map.set(card.cardNumber.toString(), lastOpDate);
+        }
+      }
+    });
+    return map;
+  }, [allCards, startDate, endDate]);
+
+  const filteredCards = useMemo(() => {
+    return filterCards(
+      allCards,
+      cardStatus,
+      walletType,
+      cardNumber,
+      cardSost,
+      startDate,
+      endDate,
+    );
+  }, [
+    allCards,
+    cardStatus,
+    walletType,
+    cardNumber,
+    cardSost,
+    startDate,
+    endDate,
+  ]);
+
+  const sortedCards = useMemo(() => {
+    const cardsCopy = [...filteredCards];
+    if (currentSortOption === "lastTransaction") {
+      // Sort by last transaction date within the selected range
+      cardsCopy.sort((a, b) => {
+        const aLastTransaction = cardLastTransactionMap.get(
+          a.cardNumber.toString(),
+        );
+        const bLastTransaction = cardLastTransactionMap.get(
+          b.cardNumber.toString(),
+        );
+
+        // Cards with transactions come first, sorted by most recent
+        if (aLastTransaction && bLastTransaction) {
+          return bLastTransaction.getTime() - aLastTransaction.getTime();
+        }
+        if (aLastTransaction && !bLastTransaction) {
+          return -1;
+        }
+        if (!aLastTransaction && bLastTransaction) {
+          return 1;
+        }
+        // If neither has transactions, maintain original order
+        return 0;
+      });
+    }
+    // Default sorting remains as is
+    return cardsCopy;
+  }, [filteredCards, currentSortOption, cardLastTransactionMap]);
+
+  // Агрегируем данные о месячных расходах
+  const monthlyExpensesData = useMemo(() => {
+    return aggregateMonthlyExpenses(
+      transactions,
+      nomenclature || [],
+      startDate.toDate(),
+      endDate.toDate(),
+      availabilityDay,
+    );
+  }, [transactions, nomenclature, startDate, endDate, availabilityDay]);
+
+  useEffect(() => {
+    if (isIdle && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
+    }
+  }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
+
+  // Загружаем транзакции для отчета по расходам
+  useEffect(() => {
+    setIsReportLoading(true);
+    fetchTransactions(
+      {
+        firmid: authData?.firmId || -1,
+        cardnum: -1, // Получаем все карты
+        fromday: startDate.format("YYYY-MM-DD"),
+        day: endDate.format("YYYY-MM-DD"),
+      },
+      api,
+    ).finally(() => {
+      setIsReportLoading(false);
+    });
+  }, [startDate, endDate, authData?.firmId, fetchTransactions, api]);
+
+  if (isLoading) {
+    return <Spinner fullscreen={false} />;
+  }
 
   return (
-    <PageLayout>
-      <PageLayout.Breadcrumbs>
+    <PageLayout
+      title="Карты"
+      breadcrumbs={
         <Breadcrumbs
           aria-label="breadcrumb"
           sx={{ mb: 2 }}
@@ -127,48 +370,135 @@ function Cards() {
           </Link>
           <Typography color="text.primary">Карты</Typography>
         </Breadcrumbs>
-      </PageLayout.Breadcrumbs>
-      <PageLayout.Title>Карты</PageLayout.Title>
-      <PageLayout.Toolbar>
-        <PageLayout.Filters>
-          <Filter key={2} onChange={handleApplyFilters}>
-            <Filter.SliderChoice
-              id={FILTER_BY_LIMIT_STATUS}
-              title="По остатку лимита"
-              defaultValue={cardLimitStatus}
-              step={10}
-              marks={[
-                { label: '0%', value: 0 },
-                { label: '50%', value: 50 },
-                { label: '100%', value: 100 },
-              ]}
-            />
+      }
+      filters={[
+        <div key="date-filter-section">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "8px",
+            }}
+          >
+            <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+              Фильтрация карт по дате последней операции
+            </Typography>
+            <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
+              <IconButton size="small" sx={{ padding: "2px" }}>
+                <InfoIcon fontSize="small" color="action" />
+              </IconButton>
+            </Tooltip>
+          </div>
+          <DateRangePicker
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            onDateChange={handleDateChange}
+          />
+        </div>,
+        <Filter key={2} onChange={handleApplyFilters}>
+          <Filter.FilterTextField
+            id={FILTER_BY_CARD_NUMBER_NAME}
+            title="Номер карты"
+            defaultValue={cardNumber}
+          />
 
-            <Filter.SingleChoice
-              id={FILTER_BY_CARD_STATUS}
-              title="Статус карты"
-              defaultValue={cardStatus}
-              options={cardStatusOptions}
-            />
+          <Filter.SingleChoice
+            id={FILTER_BY_CARD_STATUS_NAME}
+            title="Статус карты"
+            defaultValue={cardStatus}
+            options={cardStatusOptions}
+          />
 
-            <Filter.MultipleChoice
-              id={FILTER_BY_CARD_TYPE}
-              title="Тип карты"
-              options={cardTypeOptions}
-            />
-          </Filter>
-        </PageLayout.Filters>
-      </PageLayout.Toolbar>
-      <PageLayout.Content>
-        <CardsStyledBox className="cards">
-          {isSmallScreen ? (
-            <CardsList cards={cards} isLoading={isLoading} />
-          ) : (
-            <CardTable cards={cards} />
+          <Filter.SingleChoice
+            id={FILTER_BY_WALLET_TYPE_NAME}
+            title="Тип кошелька"
+            defaultValue={walletType}
+            options={walletTypeOptions}
+          />
+
+          <Filter.MultipleChoice
+            id={FILTER_BY_CARD_SOST_NAME}
+            title="Состояние"
+            options={cardSostOptions}
+            defaultValue={["выдана"]}
+          />
+        </Filter>,
+      ]}
+      sorting={
+        <SortMenu
+          label="Сортировка"
+          onSortChange={handleSortChange}
+          currentSort={currentSortOption}
+          sortOptions={sortOptions}
+        />
+      }
+      content={
+        <Box>
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => {
+              setActiveTab(newValue);
+              // Обновляем URL параметры сразу при клике
+              setSearchParameters((previous) => {
+                const newParameters = new URLSearchParams(previous);
+                if (newValue === 0) {
+                  newParameters.delete(ACTIVE_TAB_NAME);
+                } else {
+                  newParameters.set(ACTIVE_TAB_NAME, newValue.toString());
+                }
+                return newParameters;
+              });
+            }}
+            sx={{
+              borderBottom: 1,
+              borderColor: "divider",
+              mb: 2,
+              "& .MuiTab-root": {
+                color: "text.primary",
+                "&.Mui-selected": {
+                  color: "text.primary",
+                },
+              },
+            }}
+          >
+            <Tab label="Карты" />
+            <Tab label="Отчет по топливу" />
+          </Tabs>
+
+          {activeTab === 0 && (
+            <CardsStyledBox className="cards">
+              {isSmallScreen ? (
+                <CardsList cards={sortedCards} isLoading={isLoading} />
+              ) : (
+                <CardTable cards={sortedCards} />
+              )}
+            </CardsStyledBox>
           )}
-        </CardsStyledBox>
-      </PageLayout.Content>
-    </PageLayout>
+
+          {activeTab === 1 &&
+            (isReportLoading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minHeight: "200px",
+                }}
+              >
+                <Spinner fullscreen={false} />
+              </Box>
+            ) : (
+              <MonthlyExpensesView
+                data={monthlyExpensesData}
+                startDate={startDate}
+                endDate={endDate}
+                nomenclature={nomenclature}
+              />
+            ))}
+        </Box>
+      }
+    />
   );
 }
 

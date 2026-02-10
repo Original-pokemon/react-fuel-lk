@@ -20,8 +20,8 @@ module.exports = {
   settings: {
     react: { version: "detect" },
     "import/resolver": {
-      "typescript": {
-        "alwaysTryTypes": true
+      typescript: {
+        alwaysTryTypes: true,
       },
     },
     "import/parsers": {
@@ -45,6 +45,14 @@ module.exports = {
     "react/jsx-uses-react": "off",
     "react/function-component-definition": "warn",
     "unicorn/no-array-for-each": "off",
+    "check-file/filename-naming-convention": [
+      "error",
+      {
+        "**/components/**/*.tsx": "PASCAL_CASE",
+        "**/pages/**/*.tsx": "PASCAL_CASE",
+        "**/*.{ts,js}": "KEBAB_CASE",
+      },
+    ],
     "import/extensions": [
       "error",
       "ignorePackages",

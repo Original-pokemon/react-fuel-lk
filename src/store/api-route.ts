@@ -4,6 +4,8 @@ const APIRoute = {
   AuthInfo: '/who/ami',
   NomenclatureData: '/cc/e-fuelids',
   Transaction: '/cc/t',
+  FullData: 'online/full',
+  MapMarkers: '/api/map-markers',
 } as const;
 
 export default APIRoute;

@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { Grid, Card, CardContent, Typography } from '@mui/material';
-import { useAppSelector } from '#root/hooks/state';
-import { getFirmCards } from '#root/store'; // Предполагается, что вы получаете карты из Redux
+import { useMemo } from "react";
+import { Grid, Card, CardContent, Typography } from "@mui/material";
+import { useApiResponseStore } from "#root/store";
+import { formatNumberWithSpaces } from "#root/utils/format-number";
 
 function CardsSummary() {
-  const cards = useAppSelector(getFirmCards);
+  const { cards } = useApiResponseStore();
 
   const { totalCards, activeCards, blockedCards, totalFuelVolume } =
     useMemo(() => {
@@ -16,8 +16,8 @@ function CardsSummary() {
       let totalFuelVolumeResult = 0;
 
       cards.forEach((card) => {
-        card.fuels.forEach((fuel) => {
-          totalFuelVolumeResult += fuel.volume;
+        Object.values(card.wallets).forEach((fuel) => {
+          totalFuelVolumeResult += +fuel;
         });
       });
 
@@ -67,7 +67,9 @@ function CardsSummary() {
             <Typography color="textSecondary" gutterBottom>
               Общий объем топлива (л)
             </Typography>
-            <Typography variant="h5">{totalFuelVolume.toFixed(2)}</Typography>
+            <Typography variant="h5">
+              {formatNumberWithSpaces(Number(totalFuelVolume.toFixed(2)))}
+            </Typography>
           </CardContent>
         </Card>
       </Grid>

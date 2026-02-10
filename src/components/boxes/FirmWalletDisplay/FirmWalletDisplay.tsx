@@ -1,24 +1,21 @@
 import { useEffect } from 'react';
 import { FuelWalletType } from '#root/types';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import {
-  getAppStatus,
-  getNomenclatureInfo,
-  fetchNomenclatureData,
-} from '#root/store';
+import { useAppStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import Spinner from '#root/components/Spinner/Spinner';
 import InfoBox from '../InfoBox/InfoBox';
 
 function FirmWalletDisplay({ fuelWallet }: { fuelWallet: FuelWalletType[] }) {
-  const dispatch = useAppDispatch();
-  const nomenclature = useAppSelector(getNomenclatureInfo);
-  const { isIdle } = useAppSelector(getAppStatus);
+  const api = useApi();
+  const { nomenclature, status, fetchNomenclatureData } = useAppStore();
+  const isIdle = status === Status.Idle;
 
   useEffect(() => {
     if (!nomenclature && isIdle) {
-      dispatch(fetchNomenclatureData());
+      fetchNomenclatureData(api);
     }
-  }, [nomenclature, dispatch, isIdle]);
+  }, [nomenclature, isIdle, fetchNomenclatureData, api]);
 
   if (!nomenclature) {
     return <Spinner fullscreen={false} />;

@@ -1,20 +1,22 @@
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { fetchFirmData, getFirmCardById } from '#root/store';
-import { useAppDispatch, useAppSelector } from '../../hooks/state';
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useApiResponseStore, useAuthStore } from "#root/store";
+import { useApi } from "#root/hooks";
 
 function CardDetails() {
   const { id: cardnum } = useParams<{ id: string }>();
-  const dispatch = useAppDispatch();
+  const api = useApi();
+  const { authData } = useAuthStore();
+  const { cards, fetchApiResponseData } = useApiResponseStore();
 
   const cardNumber = Number(cardnum);
-  const card = useAppSelector((state) => getFirmCardById(state, cardNumber));
+  const card = cards.find((c) => c.cardNumber === cardNumber);
 
   useEffect(() => {
-    if (!card) {
-      dispatch(fetchFirmData());
+    if (!card && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
     }
-  }, [card, cardnum, dispatch]);
+  }, [authData?.firmId, card, fetchApiResponseData, api]);
 
   if (!card) {
     return <div>Карта с номером {cardnum} не найдена</div>;

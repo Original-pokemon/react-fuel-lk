@@ -16,8 +16,9 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Spinner from '#root/components/Spinner/Spinner';
-import { getAuthStatus, postAuthData } from '#root/store';
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
+import { useAuthStore } from '#root/store';
+import { useApi } from '#root/hooks';
+import { Status } from '#root/const';
 import AppRoute from '#root/const/app-route';
 
 type LoginFormData = {
@@ -30,7 +31,10 @@ const schema = yup.object({
   username: yup
     .string()
     .required('Имя пользователя обязательно.')
-    .matches(/^[\w.-]{3,20}$/, 'Пожалуйста, введите валидное имя пользователя.')
+    .matches(
+      /^[\w!#$%&*.?@-]+$/,
+      'Пожалуйста, введите валидное имя пользователя.',
+    )
     .trim(),
   password: yup
     .string()
@@ -42,16 +46,19 @@ const schema = yup.object({
 
 const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
   const char = event.key;
-  const regex = /^[\w-]+$/;
+  const regex = /^[\w!#$%&*.?@-]+$/;
   if (!regex.test(char)) {
     event.preventDefault();
   }
 };
 
 function Login() {
-  const dispatch = useAppDispatch();
-  const { isSuccess, isLoading } = useAppSelector(getAuthStatus);
+  const api = useApi();
+  const { status, postAuthData } = useAuthStore();
   const navigate = useNavigate();
+
+  const isLoading = status === Status.Loading;
+  const isSuccess = status === Status.Success;
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -71,7 +78,7 @@ function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    dispatch(postAuthData(data));
+    await postAuthData(data, api);
   };
 
   const togglePasswordVisibility = () => {
@@ -87,7 +94,7 @@ function Login() {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      {isLoading && <Spinner fullscreen size={70} />}
+      {isLoading && <Spinner fullscreen={false} size={70} />}
       <Box
         sx={{
           marginTop: 8,

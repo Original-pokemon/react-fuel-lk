@@ -1,30 +1,30 @@
-import { useEffect } from 'react';
-import { Box, Grid2 as Grid, Typography } from '@mui/material';
-import dayjs from 'dayjs';
-
-import { useAppDispatch, useAppSelector } from '#root/hooks/state';
-import {
-  getFirmCards,
-  getFirmInfo,
-  getFirmStatus,
-} from '#root/store/slice/firm/selectors';
-import Spinner from '#root/components/Spinner/Spinner';
-import { fetchFirmData, getAppStatus, getNomenclatureInfo } from '#root/store';
-import DashboardCard from '#root/components/home/DashboardCard/DashboardCard';
-import KPIBox from '#root/components/home/KPIBox/KPIBox';
-import type { TransactionType } from '#root/types';
-import ContactsBox from '#root/components/boxes/ContactsBox/ContactsBox';
-import AppRoute from '#root/const/app-route';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, Fragment, useState } from "react";
+import { Box, Grid2 as Grid, Typography, Button } from "@mui/material";
+import dayjs from "dayjs";
 
 import {
-  ExpenseDynamicsChartCard,
-  FuelBalanceCard,
-} from '#root/components/home/boxes/boxex';
-import ODINTSOVO_COORD from '../../const/map';
-import { prepareMarkers } from '../../utils/markers';
-import mapInfo from '../../mock/map-info';
-import Map from '../../components/Map/Map';
+  useApiResponseStore,
+  useAppStore,
+  useTransactionStore,
+  useMapMarkersStore,
+  useAuthStore,
+} from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import Spinner from "#root/components/Spinner/Spinner";
+import { formatNumberWithSpaces } from "#root/utils/format-number";
+import DashboardCard from "#root/components/home/DashboardCard/DashboardCard";
+import KPIBox from "#root/components/home/KPIBox/KPIBox";
+import ContactsBox from "#root/components/boxes/ContactsBox/ContactsBox";
+import CardAvatar from "#root/components/CardAvatar/CardAvatar";
+import AppRoute from "#root/const/app-route";
+import { useNavigate } from "react-router-dom";
+import FuelChip from "#root/components/FuelChip/FuelChip";
+import ODINTSOVO_COORD from "../../const/map";
+import { prepareMarkers } from "../../utils/markers";
+import Map from "../../components/Map/Map";
+
+const FILTER_BY_CARD_NUMBER_NAME = "filterByCardNumber";
 
 const mapConfig = {
   center: ODINTSOVO_COORD,
@@ -39,192 +39,462 @@ const mapConfig = {
     touchZoom: false,
     boxZoom: false,
   },
-  style: { height: '100%' },
+  style: { height: "100%" },
 };
-const markers = prepareMarkers(mapInfo);
 
 function Home() {
-  const dispatch = useAppDispatch();
+  const api = useApi();
   const navigate = useNavigate();
-  const firmInfo = useAppSelector(getFirmInfo);
-  const cards = useAppSelector(getFirmCards);
-  const nomenclature = useAppSelector(getNomenclatureInfo);
+  const { authData } = useAuthStore();
+  const {
+    firm: firmInfo,
+    status: apiResponseStatus,
+    fetchApiResponseData,
+    cards,
+  } = useApiResponseStore();
+  const {
+    nomenclature,
+    status: appStatus,
+    fetchNomenclatureData,
+  } = useAppStore();
+  const { transactions, fetchTransactions } = useTransactionStore();
+  const {
+    data: mapMarkers,
+    status: mapMarkersStatus,
+    fetchMapMarkers,
+  } = useMapMarkersStore();
 
-  const firmStatus = useAppSelector(getFirmStatus);
-  const appStatus = useAppSelector(getAppStatus);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
-  const isLoaded = firmStatus.isSuccess && firmInfo;
+  const isIdle = apiResponseStatus === Status.Idle;
+  const isSuccess = apiResponseStatus === Status.Success;
+  const isAppIdle = appStatus === Status.Idle;
+  const isMapMarkersIdle = mapMarkersStatus === Status.Idle;
 
-  const blockedCardsCount = cards.filter((c) => c.blocked).length;
-  const lowLimitCardsCount = cards.filter(
-    (card) =>
-      card.dayremain < card.daylimit * 0.1 ||
-      card.monthremain < card.monthlimit * 0.1,
-  ).length;
+  const markers = prepareMarkers(mapMarkers || { features: [] });
+
+  const isLoaded = isSuccess && firmInfo;
+
+  const totalCards = cards.length;
+  const activeCards = cards.filter((c) => !c.blocked).length;
+
+  // Get up to 5 cards with low balance (minimum fuel volume less than 50 liters)
+  const lowBalanceCards = cards
+    .filter(
+      (card) =>
+        !card.blocked && card.walletType !== 2 && card.sost === "выдана",
+    )
+    .map((card) => {
+      const fuelBalances = Object.entries(card.wallets).map(
+        ([fuelId, volume]) => ({
+          fuelId: +fuelId,
+          volume: +volume,
+        }),
+      );
+
+      return {
+        ...card,
+        fuelBalances,
+        totalBalance:
+          fuelBalances.length > 0
+            ? Math.min(...fuelBalances.map((f) => f.volume))
+            : 0,
+      };
+    })
+    .filter((card) => card.totalBalance < 50)
+    .sort((a, b) => a.totalBalance - b.totalBalance) // Sort by lowest balance first
+    .slice(0, 5);
+
+  // Get up to 5 cards with walletType 1 and low monthRemain
+  const lowMonthRemainCards = cards
+    .filter(
+      (card) =>
+        !card.blocked &&
+        card.walletType === 2 &&
+        +card.monthRemain !== 9999.99 &&
+        card.sost === "выдана",
+    )
+    .map((card) => {
+      const fuelBalances = [
+        {
+          fuelId: 0, // Use 0 as a placeholder since monthRemain is a single value
+          volume: +card.monthRemain,
+        },
+      ];
+
+      return {
+        ...card,
+        fuelBalances,
+        totalBalance: +card.monthRemain,
+      };
+    })
+    .filter((card) => card.totalBalance < 50)
+    .sort((a, b) => a.totalBalance - b.totalBalance) // Sort by lowest balance first
+    .slice(0, 5);
+
+  // Combine both lists and remove duplicates, then sort by last usage date
+  const combinedLowBalanceCards = [
+    ...lowBalanceCards,
+    ...lowMonthRemainCards.filter(
+      (monthCard) =>
+        !lowBalanceCards.some(
+          (balanceCard) => balanceCard.cardNumber === monthCard.cardNumber,
+        ),
+    ),
+  ]
+    .map((card) => ({
+      ...card,
+      lastUsed: card.date ? new Date(card.date).getTime() : 0,
+    }))
+    .sort((a, b) => b.lastUsed - a.lastUsed) // Sort by oldest usage first (newest to oldest)
+    .slice(0, 5);
 
   useEffect(() => {
-    if (!firmInfo && firmStatus.isIdle) {
-      dispatch(fetchFirmData());
+    if (!firmInfo && isIdle && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
     }
-  }, [dispatch, firmInfo, firmStatus.isIdle]);
+  }, [firmInfo, isIdle, authData?.firmId, fetchApiResponseData, api]);
 
-  if (firmStatus.isLoading) {
-    return <Spinner fullscreen />;
-  }
-
-  // const transactionsKpi = {
-  //   weekCount: 54,
-  //   averageDaily: 200,
-  //   totalSpent: 15_000,
-  // };
-
-  // Generate mock transaction data for the last 30 days
-  const mockTransactions: TransactionType[] = [];
-  const today = dayjs();
-
-  for (let dayIndex = 0; dayIndex < 30; dayIndex += 1) {
-    const date = today.subtract(dayIndex, 'day');
-    // Generate 1-5 random transactions per day
-    const transactionsPerDay = Math.floor(Math.random() * 5) + 1;
-
-    for (let txIndex = 0; txIndex < transactionsPerDay; txIndex += 1) {
-      mockTransactions.push({
-        confirmed: 1,
-        dt: date.format('YYYY-MM-DD HH:mm:ss'),
-        firmid: firmInfo?.firmid || 1,
-        cardnum: Math.floor(Math.random() * 9999) + 1000,
-        op: -1, // Debit operation (expense)
-        summa: Math.floor(Math.random() * 5000) + 500, // Random amount between 500-5500 rubles
-        volume: Math.floor(Math.random() * 50) + 10, // Random volume between 10-60 liters
-        fuelid: Math.floor(Math.random() * 3) + 1, // Random fuel type 1-3
-        azs: Math.floor(Math.random() * 100) + 1,
-        price: 50 + Math.random() * 20, // Random price between 50-70 rubles per liter
-      });
+  useEffect(() => {
+    if (!nomenclature && isAppIdle) {
+      fetchNomenclatureData(api);
     }
+  }, [nomenclature, isAppIdle, fetchNomenclatureData, api]);
+
+  useEffect(() => {
+    if (isMapMarkersIdle) {
+      fetchMapMarkers();
+    }
+  }, [isMapMarkersIdle, fetchMapMarkers]);
+
+  useEffect(() => {
+    if (firmInfo && transactions.length === 0) {
+      setIsLoadingTransactions(true);
+      fetchTransactions(
+        {
+          firmid: firmInfo.firmId,
+          cardnum: -1,
+          fromday: dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+          day: dayjs().format("YYYY-MM-DD"),
+        },
+        api,
+      ).finally(() => setIsLoadingTransactions(false));
+    }
+  }, [firmInfo, transactions.length, fetchTransactions, api]);
+
+  const latestTransactions = transactions.slice(0, 5);
+
+  const cashBalance = firmInfo?.canSpendStringRubles;
+  const cashOverdraft = firmInfo?.fuelVolumeOverdraft["1"];
+  const fuelData = firmInfo
+    ? Object.entries(firmInfo.fuelVolumeRemain)
+        .filter(([fuelId]) => fuelId !== "1")
+        .map(([fuelId, value]) => {
+          const overdraft = firmInfo.fuelVolumeOverdraft[fuelId];
+
+          const displayValue =
+            +overdraft === 0
+              ? +value === 0
+                ? undefined
+                : `${formatNumberWithSpaces(Number(value))} литров`
+              : `Перерасход: ${formatNumberWithSpaces(Number(overdraft))} литров`;
+
+          return displayValue ? { [fuelId]: displayValue } : undefined;
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== undefined)
+    : [];
+
+  if (apiResponseStatus === Status.Loading || !nomenclature) {
+    return <Spinner fullscreen={false} />;
   }
-
-  // Removed hardcoded fuelData
-
-  // const topUsedCards = [
-  //   { label: 'Карта #1234', value: '2000 л/нед.' },
-  //   { label: 'Карта #5678', value: '1800 л/нед.' },
-  // ];
 
   return (
     isLoaded && (
-      <Box sx={{ p: 2 }}>
-        <Grid container spacing={2}>
-          <Grid
-            size={{
-              xs: 12,
-              md: 6,
-            }}
-          >
+      <Box sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Row 1: Key Metrics */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <DashboardCard title="Ключевые метрики">
+              {cashBalance && cashBalance !== "0" && (
+                <KPIBox
+                  label="Можно потратить по договору"
+                  value={
+                    cashOverdraft && +cashOverdraft !== 0
+                      ? `Перерасход: ${formatNumberWithSpaces(Number(cashOverdraft))} руб.`
+                      : cashBalance === "кредит"
+                        ? "Работа в кредит"
+                        : typeof cashBalance === "string" &&
+                            Number.isNaN(Number(cashBalance))
+                          ? cashBalance
+                          : `${formatNumberWithSpaces(Number(cashBalance))} руб.`
+                  }
+                />
+              )}
+              {cashBalance === "кредит" && firmInfo?.total[1] && (
+                <KPIBox
+                  label="Сальдо расчетов"
+                  value={`${formatNumberWithSpaces(Number(firmInfo.total[1]))} руб.`}
+                />
+              )}
+              {fuelData.length > 0 && (
+                <KPIBox
+                  label="Баланс топлива"
+                  value={
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                      }}
+                    >
+                      {fuelData.map((item) => (
+                        <Box
+                          key={JSON.stringify(item)}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          {Object.entries(item).map(([key, value]) => (
+                            <Fragment key={key}>
+                              <FuelChip fuelId={+key} />
+                              <Typography sx={{ fontSize: "18px" }}>
+                                {value}
+                              </Typography>
+                            </Fragment>
+                          ))}
+                        </Box>
+                      ))}
+                    </Box>
+                  }
+                />
+              )}
               <KPIBox
-                label="Доступно сейчас:"
-                value={firmInfo.firmcash.conf > 0 ? firmInfo.firmcash.conf : 0}
+                label="Активные карты (активно /всего)"
+                value={`${activeCards} / ${totalCards}`}
               />
-              <KPIBox
-                label="Задолжность:"
-                value={firmInfo.firmcash.conf < 0 ? firmInfo.firmcash.conf : 0}
-              />
-              {/* <KPIBox
-                label="Транзакций в неделю"
-                value={transactionsKpi.weekCount}
-              /> */}
-              {/* Заблокированные карты */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                  cursor: blockedCardsCount > 0 ? 'pointer' : 'default',
-                }}
-                onClick={
-                  blockedCardsCount > 0
-                    ? () => navigate('/cards?status=blocked')
-                    : undefined
-                }
-              >
-                <Typography variant="body2" color="text.main">
-                  Заблокированные карты:
-                </Typography>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    color: blockedCardsCount > 0 ? '#D32F2F' : 'text.primary',
-                  }}
-                >
-                  {blockedCardsCount}
-                </Typography>
-              </Box>
-              {/* Карты с низким лимитом */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                  cursor: lowLimitCardsCount > 0 ? 'pointer' : 'default',
-                }}
-                onClick={
-                  lowLimitCardsCount > 0
-                    ? () => navigate('/cards?limit_status=10')
-                    : undefined
-                }
-              >
-                <Typography variant="body2" color="text.main">
-                  Карты с низким лимитом:
-                </Typography>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    color: lowLimitCardsCount > 0 ? '#F57C00' : 'text.primary',
-                  }}
-                >
-                  {lowLimitCardsCount}
-                </Typography>
+            </DashboardCard>
+          </Grid>
+
+          {/* Row 2: Cards with Low Balance */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <DashboardCard title="Карты с низким балансом">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {combinedLowBalanceCards.length > 0 ? (
+                  combinedLowBalanceCards.map((card) => (
+                    <Box
+                      key={card.cardNumber}
+                      onClick={() =>
+                        navigate(
+                          `${AppRoute.Cards}?${FILTER_BY_CARD_NUMBER_NAME}=${card.cardNumber}`,
+                        )
+                      }
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        p: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "action.hover",
+                        },
+                      }}
+                    >
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <CardAvatar cardnum={card.cardNumber} />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 0.5,
+                        }}
+                      >
+                        {card.walletType === 2 ? (
+                          <Typography variant="body2">
+                            {formatNumberWithSpaces(Number(card.totalBalance))}{" "}
+                            л
+                          </Typography>
+                        ) : (
+                          card.fuelBalances.map((fuel) => (
+                            <Box
+                              key={fuel.fuelId}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <FuelChip fuelId={fuel.fuelId} />
+                              <Typography variant="body2">
+                                {formatNumberWithSpaces(Number(fuel.volume))} л
+                              </Typography>
+                            </Box>
+                          ))
+                        )}
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: "center", py: 2 }}
+                  >
+                    Нет карт с низким балансом
+                  </Typography>
+                )}
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate(AppRoute.Cards)}
+                    sx={{ px: 2, py: 0.5, borderRadius: 2 }}
+                  >
+                    Все карты
+                  </Button>
+                </Box>
               </Box>
             </DashboardCard>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
-            <ExpenseDynamicsChartCard transactions={mockTransactions} />
+          {/* Row 3: Latest Transactions */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <DashboardCard title="Последние транзакции">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {isLoadingTransactions ? (
+                  <Spinner fullscreen={false} />
+                ) : latestTransactions.length > 0 ? (
+                  latestTransactions.map((transaction) => (
+                    <Box
+                      key={`${transaction.dt}-${transaction.cardnum}-${transaction.op}`}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        p: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                      }}
+                    >
+                      {/* Header */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 1,
+                        }}
+                      >
+                        <CardAvatar cardnum={transaction.cardnum} />
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          <Typography variant="body2">
+                            АЗС-{transaction.azs}
+                          </Typography>
+                          <Typography variant="caption" color="text.default">
+                            {dayjs(transaction.dt).format(
+                              "DD.MM.YYYY HH:mm:ss",
+                            )}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Body */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          minWidth: "fit-content",
+                        }}
+                      >
+                        {/* Fuel */}
+                        <Box>
+                          <FuelChip fuelId={transaction.fuelid} />
+                        </Box>
+
+                        {/* Volume */}
+                        <Box>
+                          <Typography variant="caption" color="text.default">
+                            Объем:
+                          </Typography>
+                          <Typography variant="body2">
+                            {formatNumberWithSpaces(Number(transaction.volume))}{" "}
+                            л
+                          </Typography>
+                        </Box>
+
+                        {/* Amount */}
+                        <Box>
+                          <Typography variant="caption" color="text.default">
+                            {transaction.op === -1 ? "Списание" : "Пополнение"}
+                          </Typography>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              color: transaction.op === -1 ? "red" : "green",
+                            }}
+                          >
+                            {formatNumberWithSpaces(
+                              Number(transaction.summa.toFixed(2)),
+                            )}{" "}
+                            ₽
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: "center", py: 2 }}
+                  >
+                    Нет транзакций
+                  </Typography>
+                )}
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate(AppRoute.Transaction)}
+                    sx={{ px: 2, py: 0.5, borderRadius: 2 }}
+                  >
+                    Все транзакции
+                  </Button>
+                </Box>
+              </Box>
+            </DashboardCard>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ContactsBox />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 4 }} />
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            {appStatus.isSuccess && (
-              <FuelBalanceCard
-                fuelWallet={firmInfo.firmwallet}
-                nomenclature={nomenclature || []}
-              />
-            )}
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
+          {/* Row 4: Map */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <Box
               onClick={() => {
                 navigate(AppRoute.AzsMap);
               }}
+              sx={{
+                height: "100%",
+                minHeight: "300px",
+                cursor: "pointer",
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
             >
               <Map mapConfig={{ ...mapConfig }} markers={markers} />
             </Box>
-            {/* <DashboardCard title="Самые используемые карты">
-              <DataListBox items={topUsedCards} />
-            </DashboardCard> */}
           </Grid>
 
-          {/* <Grid size={{ xs: 12, md: 6 }}>
-            <DashboardCard title="Карты с низким лимитом">
-              <NearingLimitCardsCard cards={cards} threshold={90} />
-            </DashboardCard>
-          </Grid> */}
+          {/* Row 5: Contacts */}
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <ContactsBox />
+          </Grid>
         </Grid>
       </Box>
     )

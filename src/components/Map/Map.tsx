@@ -36,7 +36,11 @@ function Map({ mapConfig, markers }: Properties) {
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {markers.map(({ popupContent, position }) => (
         <Marker key={position.join('-')} position={position}>
-          {popupContent && <Popup>{popupContent}</Popup>}
+          {popupContent && (
+            <Popup>
+              <div dangerouslySetInnerHTML={{ __html: popupContent }} />
+            </Popup>
+          )}
         </Marker>
       ))}
     </MapContainer>

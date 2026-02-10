@@ -1,20 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
-
-import createAPI from '../services/api/api';
-import { reducer } from './reducer';
-
-const api = createAPI();
-
-const store = configureStore({
-  reducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      thunk: {
-        extraArgument: api,
-      },
-    }),
-});
-
-export * from './slice';
-
-export default store;
+export { useAuthStore } from './auth-store';
+export { useFirmStore } from './firm-store';
+export { useAppStore } from './app-store';
+export { useTransactionStore } from './transaction-store';
+export { useApiResponseStore } from './api-response-store';
+export { useMapMarkersStore } from './map-markers-store';

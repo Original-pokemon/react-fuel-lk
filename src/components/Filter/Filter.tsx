@@ -30,7 +30,7 @@ function filterReducer(
       if (
         existingFilter &&
         JSON.stringify(existingFilter.options) ===
-        JSON.stringify(filter.options)
+          JSON.stringify(filter.options)
       ) {
         return state;
       }

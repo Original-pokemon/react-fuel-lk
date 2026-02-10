@@ -1,8 +1,6 @@
 import { Paper, PaperProps, styled } from '@mui/material';
 
-const WalletTypeBoxStyled = styled(Paper)<
-  PaperProps & { backgroundColor: string }
->(({ theme, backgroundColor }) => ({
+const WalletTypeBoxStyled = styled(Paper)<PaperProps>(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -15,7 +13,6 @@ const WalletTypeBoxStyled = styled(Paper)<
 
   border: `2px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
-  backgroundColor,
 }));
 
 export default WalletTypeBoxStyled;

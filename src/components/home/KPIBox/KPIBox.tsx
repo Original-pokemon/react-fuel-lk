@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 
 type KPIBoxProperties = {
   label: string;
-  value: string | number;
+  value: string | number | JSX.Element;
   variant?: 'primary' | 'secondary' | 'success' | 'error'; // для цветового кодирования
 };
 

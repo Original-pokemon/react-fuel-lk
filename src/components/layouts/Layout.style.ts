@@ -12,6 +12,7 @@ const LayoutStyleBox = styled(Box)<BoxProps>(({ theme }) => ({
 
   '.navbar': {
     marginBottom: '1.2rem',
+    width: '100%',
   },
 
   '.container': {
@@ -46,7 +47,9 @@ const LayoutStyleBox = styled(Box)<BoxProps>(({ theme }) => ({
     },
   },
 
-  '.footer': {},
+  '.footer': {
+    width: '100%',
+  },
 }));
 
 export default LayoutStyleBox;

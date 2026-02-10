@@ -20,8 +20,7 @@ function WalletTypeCell({ value }: { value: number }) {
   return (
     <WalletTypeBoxStyled
       variant="outlined"
-      sx={{ fontWeight: 600 }}
-      backgroundColor={color as string}
+      sx={{ fontWeight: 600, backgroundColor: color }}
     >
       {walletTypeName}{' '}
     </WalletTypeBoxStyled>

@@ -5,25 +5,45 @@ import { ToastContainer } from 'react-toastify';
 import Home from './pages/Home/Home';
 import Transactions from './pages/Transactions/Transactions';
 import Cards from './pages/Cards/Cards';
+import Contracts from './pages/Contracts/Contracts';
 import Login from './pages/Login/Login';
 import AzsMap from './pages/AzsMap/AzsMap';
 import AuthGuard from './components/AuthGuard/AuthGuard';
-import { useAppDispatch, useAppSelector } from './hooks/state';
-import { getAuthStatus, fetchFirmData, fetchNomenclatureData } from './store';
+import {
+  useAuthStore,
+  useAppStore,
+  useApiResponseStore,
+  useFirmStore,
+} from './store';
+import { useApi } from './hooks';
+import { Status } from './const';
 import Layout from './components/layouts/Layout';
 import 'react-toastify/dist/ReactToastify.css';
 import AppRoute from './const/app-route';
 
 function App() {
-  const dispatch = useAppDispatch();
-  const { isSuccess: isAuthSuccess } = useAppSelector(getAuthStatus);
+  const api = useApi();
+  const { authData, status: authStatus } = useAuthStore();
+  const { fetchNomenclatureData } = useAppStore();
+  const { fetchApiResponseData } = useApiResponseStore();
+  const { fetchFirmData } = useFirmStore();
+
+  const isAuthSuccess = authStatus === Status.Success;
 
   useEffect(() => {
-    if (isAuthSuccess) {
-      dispatch(fetchFirmData());
-      dispatch(fetchNomenclatureData());
+    if (isAuthSuccess && authData?.firmId) {
+      fetchApiResponseData(authData.firmId, api);
+      fetchFirmData(authData.firmId, api);
+      fetchNomenclatureData(api);
     }
-  }, [dispatch, isAuthSuccess]);
+  }, [
+    isAuthSuccess,
+    authData?.firmId,
+    fetchApiResponseData,
+    fetchFirmData,
+    fetchNomenclatureData,
+    api,
+  ]);
 
   return (
     <>
@@ -37,6 +57,7 @@ function App() {
             {/* <Route path={AppRoute.Profile} element={<Profile />} /> */}
             <Route path={AppRoute.Transaction} element={<Transactions />} />
             <Route path={AppRoute.Cards} element={<Cards />} />
+            <Route path={AppRoute.Contracts} element={<Contracts />} />
             <Route path={AppRoute.Card} element={<Cards />} />
             <Route path={AppRoute.AzsMap} element={<AzsMap />} />
             {/* <Route
