@@ -14,8 +14,8 @@ import {
   MenuItem,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
-import DownloadIcon from '@mui/icons-material/Info';
-import ArrowDropDownIcon from '@mui/icons-material/Info';
+import DownloadIcon from '@mui/icons-material/Download';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
