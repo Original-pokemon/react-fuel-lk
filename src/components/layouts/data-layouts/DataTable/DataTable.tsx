@@ -1,19 +1,25 @@
-import { GridToolbar, DataGridProps } from '@mui/x-data-grid';
-import { dataGridClasses, DataGridStyled } from './DataTable.style';
+import { GridToolbar, DataGridProps } from "@mui/x-data-grid";
+import { dataGridClasses, DataGridStyled } from "./DataTable.style";
 
 type Properties = {
   name?: string;
   pageSizeOptions?: number[];
+  disableToolBar?: boolean;
+  disableFooter?: boolean;
+  disableHeaders?: boolean;
 } & DataGridProps;
 
 function DataTable({
   name,
-  density = 'comfortable',
+  density = "comfortable",
   columns,
   rows,
   filterModel,
   loading,
   pageSizeOptions = [10, 25, 50],
+  disableToolBar = false,
+  disableFooter = false,
+  disableHeaders = false,
   ...rest
 }: Properties) {
   return (
@@ -30,15 +36,16 @@ function DataTable({
       }}
       density={density}
       slots={{
-        toolbar: GridToolbar,
-        // footer:
+        columnHeaders: disableHeaders ? () => null : undefined,
+        toolbar: disableToolBar ? null : GridToolbar,
+        footer: disableFooter ? () => null : undefined,
       }}
       slotProps={{
         toolbar: {
           printOptions: { disableToolbarButton: true },
           csvOptions: {
             fileName: name,
-            delimiter: ';',
+            delimiter: ";",
             utf8WithBom: true,
           },
         },
@@ -54,8 +61,6 @@ function DataTable({
       classes={{
         columnHeaderTitle: dataGridClasses.wrapHeader,
       }}
-      // showColumnVerticalBorder
-      // showCellVerticalBorder
       disableRowSelectionOnClick
       disableDensitySelector
       disableColumnFilter
@@ -68,3 +73,4 @@ function DataTable({
 }
 
 export { DataTable };
+export default DataTable;

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { TransactionType } from '#root/types';
 
-export const mapTransactionsToRows = (transactions: TransactionType[]) => {
+const mapTransactionsToRows = (transactions: TransactionType[]) => {
   return transactions.map((transaction) => {
     return {
       id: `${transaction.dt}-${transaction.cardnum}-${transaction.op}`,
@@ -17,3 +17,5 @@ export const mapTransactionsToRows = (transactions: TransactionType[]) => {
     };
   });
 };
+
+export default mapTransactionsToRows;

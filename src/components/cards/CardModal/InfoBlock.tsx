@@ -59,14 +59,14 @@ function InfoBlock({
             sx={{
               borderBottom:
                 borderBetweenRows &&
-                  direction === 'row' &&
-                  index !== array.length - 1
+                direction === 'row' &&
+                index !== array.length - 1
                   ? '1px solid'
                   : undefined,
               borderRight:
                 borderBetweenColumns &&
-                  direction === 'column' &&
-                  index !== array.length - 1
+                direction === 'column' &&
+                index !== array.length - 1
                   ? '1px solid'
                   : undefined,
               borderColor: 'divider',

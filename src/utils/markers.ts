@@ -29,15 +29,16 @@ const prepareMarkers = (map: any, popupContent = false) => {
         <div style="font-weight: bold; margin-bottom: 8px; color: #1976d2;">
           ${balloonContent}
         </div>
-        ${fuelPrices
-        ? `
+        ${
+          fuelPrices
+            ? `
           <div style="margin-bottom: 8px;">
             <strong style="color: #333;">Цены на топливо:</strong><br/>
             ${fuelPrices}
           </div>
         `
-        : ''
-      }
+            : ''
+        }
         ${options.shop === '1' ? '<div style="color: #4caf50;">🏪 Есть магазин</div>' : ''}
       </div>
     `;

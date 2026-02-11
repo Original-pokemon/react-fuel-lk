@@ -16,16 +16,17 @@ const InfoStyledBox = styled(Box)<BoxProps>(({ theme }) => ({
   },
 
   '.list': {
+    alignItems: 'left',
+
     '.listItem': {
-      display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: '30px',
 
-      '.name': {
-        fontSize: '16px',
-        fontWeight: 500,
-      },
+      // '.name': {
+      //   fontSize: '16px',
+      //   fontWeight: 500,
+      // },
 
       '.values': {
         fontSize: '14px',

@@ -11,6 +11,7 @@ import { useEffectSkipMount } from './hooks';
 import Actions from './const';
 import type { ActionType, SelectedFiltersType } from './types';
 import { FilterDispatchContext, FilterStateContext } from './filter-context';
+import SliderChoice from './filter-elements/SliderChoice/SliderChoice';
 
 type FilterProperties = {
   children: FilterElementsType[];
@@ -29,7 +30,7 @@ function filterReducer(
       if (
         existingFilter &&
         JSON.stringify(existingFilter.options) ===
-        JSON.stringify(filter.options)
+          JSON.stringify(filter.options)
       ) {
         return state;
       }
@@ -135,5 +136,6 @@ function Filter({ children, onChange }: FilterProperties) {
 Filter.SingleChoice = SingleChoice;
 Filter.FilterTextField = FilterTextField;
 Filter.MultipleChoice = MultipleChoice;
+Filter.SliderChoice = SliderChoice;
 
 export default Filter;

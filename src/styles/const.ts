@@ -37,7 +37,7 @@ const brandColors = {
     contrastText: '#FFFFFF',
   },
   white: {
-    main: '#F0F0F0',
+    main: '#ECF0F1',
     light: '#FFFFFF',
     dark: '#CCCCCC',
     contrastText: '#000000',

@@ -1,78 +1,121 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { SxProps, Theme } from '@mui/system';
+import React from "react";
+import { Box, Button, Typography } from "@mui/material";
+import { ChevronLeft } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import AlertBanner from "#root/components/AlertBanner/AlertBanner";
 
-type PageLayoutProperties = {
-  title: React.ReactNode;
-  breadcrumbs?: React.ReactNode;
-  diagrams?: React.ReactNode;
-  filters?: React.ReactElement[];
-  sorting?: React.ReactNode;
-  content: React.ReactNode;
-  sx?: SxProps<Theme>;
+type SubComponentProperties = {
+  children: React.ReactNode;
 };
 
-function PageLayout({
-  title,
-  breadcrumbs,
-  diagrams,
-  filters,
-  sorting,
-  content,
-  sx,
-}: PageLayoutProperties) {
+function Breadcrumbs({ children }: SubComponentProperties) {
+  return <Box sx={{ mb: 2 }}>{children}</Box>;
+}
+
+function Title({ children }: SubComponentProperties) {
   return (
-    <Box sx={{ p: 2, ...sx }}>
-      {/* Breadcrumbs */}
-      {breadcrumbs && <Box mb={2}>{breadcrumbs}</Box>}
+    <Typography variant="h5" sx={{ mb: 2 }}>
+      {children}
+    </Typography>
+  );
+}
 
-      {/* Title */}
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {title}
-      </Typography>
+function Diagrams({ children }: SubComponentProperties) {
+  return <Box sx={{ mb: 2 }}>{children}</Box>;
+}
 
-      {/* Diagrams */}
-      {diagrams && <Box mb={2}>{diagrams}</Box>}
+function Content({ children }: SubComponentProperties) {
+  return <Box>{children}</Box>;
+}
 
-      {/* Filters and Sorting */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          pb: 2,
-          gap: 2,
-          overflow: 'hidden',
-        }}
-      >
-        {/* Filters Section - Vertical Layout */}
-        {filters && filters.length > 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {filters.map((filter) => (
-              <Box key={filter.key}>{filter}</Box>
-            ))}
-          </Box>
-        )}
-
-        {/* Sorting Section - Vertical Layout, pinned to bottom right */}
-        {sorting && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-              justifyContent: 'flex-end',
-              marginLeft: 'auto',
-            }}
-          >
-            {sorting}
-          </Box>
-        )}
-      </Box>
-
-      {/* Content */}
-      <Box>{content}</Box>
+function Filters({ children }: SubComponentProperties) {
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {React.Children.map(children, (child) => (
+        <Box>{child}</Box>
+      ))}
     </Box>
   );
 }
+
+function Sorting({ children }: SubComponentProperties) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        justifyContent: "flex-end",
+        ml: "auto",
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function Toolbar({ children }: SubComponentProperties) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        pb: 2,
+        gap: 2,
+        overflow: "hidden",
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function BackButton({ fallback = "/" }: { fallback?: string }) {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    const canGoBack = (window.history.state?.idx as number) > 0;
+
+    if (canGoBack) {
+      navigate(-1);
+    } else {
+      navigate(fallback);
+    }
+  };
+
+  return (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={handleBack}
+      startIcon={<ChevronLeft />}
+      sx={{ width: "fit-content" }}
+    >
+      Назад
+    </Button>
+  );
+}
+
+type PageLayoutProperties = {
+  children: React.ReactNode;
+};
+
+function PageLayout({ children }: PageLayoutProperties) {
+  return (
+    <Box sx={{ p: 2 }}>
+      <AlertBanner />
+      {children}
+    </Box>
+  );
+}
+
+PageLayout.Breadcrumbs = Breadcrumbs;
+PageLayout.Title = Title;
+PageLayout.Diagrams = Diagrams;
+PageLayout.Toolbar = Toolbar;
+PageLayout.Filters = Filters;
+PageLayout.Sorting = Sorting;
+PageLayout.Content = Content;
+PageLayout.BackButton = BackButton;
 
 export default PageLayout;
