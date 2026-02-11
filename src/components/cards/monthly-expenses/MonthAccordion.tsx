@@ -5,27 +5,30 @@ import {
   Typography,
   Box,
   Button,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import { formatNumberWithSpaces } from '#root/utils/format-number';
-import { MonthlyExpenseSummary } from '#root/types/monthly-expenses';
-import ExpensesTable from './ExpensesTable';
+  CircularProgress,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DescriptionIcon from "@mui/icons-material/Description";
+import { formatNumberWithSpaces } from "#root/utils/format-number";
+import { MonthlyExpenseSummary } from "#root/types/monthly-expenses";
+import ExpensesTable from "./ExpensesTable";
 
 type MonthAccordionProperties = {
   month: MonthlyExpenseSummary;
   expanded: boolean;
   onToggle: (monthKey: string) => void;
-  onDetailedReport: (monthKey: string) => void;
+  onGenerateReport: (monthKey: string) => void;
   reportLoading: boolean;
+  isReportCached: boolean;
 };
 
 function MonthAccordion({
   month,
   expanded,
   onToggle,
-  onDetailedReport,
+  onGenerateReport,
   reportLoading,
+  isReportCached,
 }: MonthAccordionProperties) {
   return (
     <Accordion
@@ -36,50 +39,60 @@ function MonthAccordion({
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         sx={{
-          bgcolor: 'grey.50',
-          '&:hover': { bgcolor: 'grey.100' },
+          bgcolor: "grey.50",
+          "&:hover": { bgcolor: "grey.100" },
         }}
       >
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '100%',
-            alignItems: 'center',
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            alignItems: "center",
           }}
         >
           <Box>
             <Typography variant="h6">{month.monthName}</Typography>
-            <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+            <Box sx={{ display: "flex", gap: 2, mt: 0.5 }}>
               <Typography
                 variant="body2"
                 color="primary.main"
-                sx={{ fontWeight: 'bold' }}
+                sx={{ fontWeight: "bold" }}
               >
                 Объем: {formatNumberWithSpaces(month.totalVolume)} л
               </Typography>
               <Typography
                 variant="body2"
                 color="primary.main"
-                sx={{ fontWeight: 'bold' }}
+                sx={{ fontWeight: "bold" }}
               >
                 Сумма: {formatNumberWithSpaces(month.totalAmount)} ₽
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             <Button
               size="small"
-              variant="outlined"
-              startIcon={<AssessmentIcon />}
+              variant={isReportCached ? "contained" : "outlined"}
+              startIcon={
+                reportLoading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <DescriptionIcon />
+                )
+              }
               onClick={(event) => {
                 event.stopPropagation();
-                onDetailedReport(month.month);
+                onGenerateReport(month.month);
               }}
               disabled={reportLoading}
-              sx={{ minWidth: 'auto' }}
+              sx={{ minWidth: "auto" }}
             >
-              {reportLoading ? 'Формирование...' : 'Скачать подробный отчет'}
+              {reportLoading
+                ? "Загрузка..."
+                : isReportCached
+                  ? "Показать отчет"
+                  : "Скачать отчет"}
             </Button>
           </Box>
         </Box>

@@ -19,15 +19,18 @@ import HomeIcon from "@mui/icons-material/Home";
 import CardTable from "#root/components/cards/CardTable/CardTable";
 import CardsList from "#root/components/cards/CardsList/CardsList";
 import MonthlyExpensesView from "#root/components/cards/monthly-expenses/MonthlyExpensesView";
+import ReportPreviewModal from "#root/components/cards/ReportPreviewModal";
 import {
   useApiResponseStore,
   useTransactionStore,
   useAppStore,
   useAuthStore,
+  useReportStore,
 } from "#root/store";
 import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import aggregateMonthlyExpenses from "#root/utils/monthly-expenses";
+import { base64ToBlob, downloadBlob } from "#root/utils/file-download";
 import Spinner from "#root/components/Spinner/Spinner";
 import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
 import Filter from "#root/components/Filter/Filter";
@@ -133,6 +136,8 @@ function Cards() {
   } = useApiResponseStore();
   const { transactions, fetchTransactions } = useTransactionStore();
   const { nomenclature } = useAppStore();
+  const { fetchReport, getReport, isMonthLoading, isMonthCached } =
+    useReportStore();
 
   const isIdle = apiResponseStatus === Status.Idle;
   const isLoading = apiResponseStatus === Status.Loading;
@@ -158,6 +163,10 @@ function Cards() {
     dayjs().subtract(6, "month").startOf("month"),
   );
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
+
+  // Report preview state
+  const [showReportPreview, setShowReportPreview] = useState<boolean>(false);
+  const [previewMonthKey, setPreviewMonthKey] = useState<string | null>(null);
 
   const availabilityDay = 4;
 
@@ -243,6 +252,52 @@ function Cards() {
     if (newEndDate) {
       setEndDate(newEndDate);
     }
+  };
+
+  const handleGenerateMonthReport = async (monthKey: string) => {
+    if (!authData?.firmId) return;
+
+    // Проверяем, есть ли отчет в кеше
+    const isCached = isMonthCached(monthKey, authData.firmId);
+
+    try {
+      await fetchReport(monthKey, authData.firmId, api);
+      // Показываем preview только если отчет уже был в кеше (повторный клик)
+      if (isCached) {
+        setPreviewMonthKey(monthKey);
+        setShowReportPreview(true);
+      }
+    } catch (error) {
+      alert("Не удалось загрузить отчет. Попробуйте позже.");
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!authData?.firmId || !previewMonthKey) return;
+
+    const report = getReport(previewMonthKey, authData.firmId);
+    if (!report?.pdf) return;
+
+    const blob = base64ToBlob(report.pdf, "application/pdf");
+    downloadBlob(blob, `отчет_${previewMonthKey.replace("-", "_")}.pdf`);
+  };
+
+  const handleDownloadExcel = () => {
+    if (!authData?.firmId || !previewMonthKey) return;
+
+    const report = getReport(previewMonthKey, authData.firmId);
+    if (!report?.xlsx) return;
+
+    const blob = base64ToBlob(
+      report.xlsx,
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    downloadBlob(blob, `отчет_${previewMonthKey.replace("-", "_")}.xlsx`);
+  };
+
+  const handleClosePreview = () => {
+    setShowReportPreview(false);
+    setPreviewMonthKey(null);
   };
 
   // Create a map of card numbers to their last transaction date from card data
@@ -351,154 +406,171 @@ function Cards() {
   }
 
   return (
-    <PageLayout
-      title="Карты"
-      breadcrumbs={
-        <Breadcrumbs
-          aria-label="breadcrumb"
-          sx={{ mb: 2 }}
-          color="primary.light"
-        >
-          <Link
-            underline="hover"
-            color="inherit"
-            component={RouterLink}
-            to={AppRoute.Main}
+    <>
+      <PageLayout
+        title="Карты"
+        breadcrumbs={
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            sx={{ mb: 2 }}
+            color="primary.light"
           >
-            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-            Главная
-          </Link>
-          <Typography color="text.primary">Карты</Typography>
-        </Breadcrumbs>
-      }
-      filters={[
-        <div key="date-filter-section">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "8px",
-            }}
-          >
-            <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-              Фильтрация карт по дате последней операции
-            </Typography>
-            <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
-              <IconButton size="small" sx={{ padding: "2px" }}>
-                <InfoIcon fontSize="small" color="action" />
-              </IconButton>
-            </Tooltip>
-          </div>
-          <DateRangePicker
-            initialStartDate={startDate}
-            initialEndDate={endDate}
-            onDateChange={handleDateChange}
-          />
-        </div>,
-        <Filter key={2} onChange={handleApplyFilters}>
-          <Filter.FilterTextField
-            id={FILTER_BY_CARD_NUMBER_NAME}
-            title="Номер карты"
-            defaultValue={cardNumber}
-          />
+            <Link
+              underline="hover"
+              color="inherit"
+              component={RouterLink}
+              to={AppRoute.Main}
+            >
+              <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+              Главная
+            </Link>
+            <Typography color="text.primary">Карты</Typography>
+          </Breadcrumbs>
+        }
+        filters={[
+          <div key="date-filter-section">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                Фильтрация карт по дате последней операции
+              </Typography>
+              <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
+                <IconButton size="small" sx={{ padding: "2px" }}>
+                  <InfoIcon fontSize="small" color="action" />
+                </IconButton>
+              </Tooltip>
+            </div>
+            <DateRangePicker
+              initialStartDate={startDate}
+              initialEndDate={endDate}
+              onDateChange={handleDateChange}
+            />
+          </div>,
+          <Filter key={2} onChange={handleApplyFilters}>
+            <Filter.FilterTextField
+              id={FILTER_BY_CARD_NUMBER_NAME}
+              title="Номер карты"
+              defaultValue={cardNumber}
+            />
 
-          <Filter.SingleChoice
-            id={FILTER_BY_CARD_STATUS_NAME}
-            title="Статус карты"
-            defaultValue={cardStatus}
-            options={cardStatusOptions}
-          />
+            <Filter.SingleChoice
+              id={FILTER_BY_CARD_STATUS_NAME}
+              title="Статус карты"
+              defaultValue={cardStatus}
+              options={cardStatusOptions}
+            />
 
-          <Filter.SingleChoice
-            id={FILTER_BY_WALLET_TYPE_NAME}
-            title="Тип кошелька"
-            defaultValue={walletType}
-            options={walletTypeOptions}
-          />
+            <Filter.SingleChoice
+              id={FILTER_BY_WALLET_TYPE_NAME}
+              title="Тип кошелька"
+              defaultValue={walletType}
+              options={walletTypeOptions}
+            />
 
-          <Filter.MultipleChoice
-            id={FILTER_BY_CARD_SOST_NAME}
-            title="Состояние"
-            options={cardSostOptions}
-            defaultValue={["выдана"]}
+            <Filter.MultipleChoice
+              id={FILTER_BY_CARD_SOST_NAME}
+              title="Состояние"
+              options={cardSostOptions}
+              defaultValue={["выдана"]}
+            />
+          </Filter>,
+        ]}
+        sorting={
+          <SortMenu
+            label="Сортировка"
+            onSortChange={handleSortChange}
+            currentSort={currentSortOption}
+            sortOptions={sortOptions}
           />
-        </Filter>,
-      ]}
-      sorting={
-        <SortMenu
-          label="Сортировка"
-          onSortChange={handleSortChange}
-          currentSort={currentSortOption}
-          sortOptions={sortOptions}
-        />
-      }
-      content={
-        <Box>
-          <Tabs
-            value={activeTab}
-            onChange={(_, newValue) => {
-              setActiveTab(newValue);
-              // Обновляем URL параметры сразу при клике
-              setSearchParameters((previous) => {
-                const newParameters = new URLSearchParams(previous);
-                if (newValue === 0) {
-                  newParameters.delete(ACTIVE_TAB_NAME);
-                } else {
-                  newParameters.set(ACTIVE_TAB_NAME, newValue.toString());
-                }
-                return newParameters;
-              });
-            }}
-            sx={{
-              borderBottom: 1,
-              borderColor: "divider",
-              mb: 2,
-              "& .MuiTab-root": {
-                color: "text.primary",
-                "&.Mui-selected": {
+        }
+        content={
+          <Box>
+            <Tabs
+              value={activeTab}
+              onChange={(_, newValue) => {
+                setActiveTab(newValue);
+                // Обновляем URL параметры сразу при клике
+                setSearchParameters((previous) => {
+                  const newParameters = new URLSearchParams(previous);
+                  if (newValue === 0) {
+                    newParameters.delete(ACTIVE_TAB_NAME);
+                  } else {
+                    newParameters.set(ACTIVE_TAB_NAME, newValue.toString());
+                  }
+                  return newParameters;
+                });
+              }}
+              sx={{
+                borderBottom: 1,
+                borderColor: "divider",
+                mb: 2,
+                "& .MuiTab-root": {
                   color: "text.primary",
+                  "&.Mui-selected": {
+                    color: "text.primary",
+                  },
                 },
-              },
-            }}
-          >
-            <Tab label="Карты" />
-            <Tab label="Отчет по топливу" />
-          </Tabs>
+              }}
+            >
+              <Tab label="Карты" />
+              <Tab label="Отчет по топливу" />
+            </Tabs>
 
-          {activeTab === 0 && (
-            <CardsStyledBox className="cards">
-              {isSmallScreen ? (
-                <CardsList cards={sortedCards} isLoading={isLoading} />
+            {activeTab === 0 && (
+              <CardsStyledBox className="cards">
+                {isSmallScreen ? (
+                  <CardsList cards={sortedCards} isLoading={isLoading} />
+                ) : (
+                  <CardTable cards={sortedCards} />
+                )}
+              </CardsStyledBox>
+            )}
+
+            {activeTab === 1 &&
+              (isReportLoading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "200px",
+                  }}
+                >
+                  <Spinner fullscreen={false} />
+                </Box>
               ) : (
-                <CardTable cards={sortedCards} />
-              )}
-            </CardsStyledBox>
-          )}
-
-          {activeTab === 1 &&
-            (isReportLoading ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  minHeight: "200px",
-                }}
-              >
-                <Spinner fullscreen={false} />
-              </Box>
-            ) : (
-              <MonthlyExpensesView
-                data={monthlyExpensesData}
-                startDate={startDate}
-                endDate={endDate}
-                nomenclature={nomenclature}
-              />
-            ))}
-        </Box>
-      }
-    />
+                <MonthlyExpensesView
+                  data={monthlyExpensesData}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onGenerateReport={handleGenerateMonthReport}
+                  isMonthLoading={isMonthLoading}
+                  isMonthCached={(monthKey) =>
+                    isMonthCached(monthKey, authData?.firmId || 0)
+                  }
+                />
+              ))}
+          </Box>
+        }
+      />
+      <ReportPreviewModal
+        open={showReportPreview}
+        pdfBase64={
+          previewMonthKey && authData?.firmId
+            ? getReport(previewMonthKey, authData.firmId)?.pdf || null
+            : null
+        }
+        onClose={handleClosePreview}
+        onDownloadPdf={handleDownloadPdf}
+        onDownloadExcel={handleDownloadExcel}
+      />
+    </>
   );
 }
 
