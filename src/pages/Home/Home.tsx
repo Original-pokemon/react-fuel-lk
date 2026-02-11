@@ -205,7 +205,7 @@ function Home() {
     : [];
 
   if (apiResponseStatus === Status.Loading || !nomenclature) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   return (
@@ -369,7 +369,7 @@ function Home() {
             <DashboardCard title="Последние транзакции">
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {isLoadingTransactions ? (
-                  <Spinner fullscreen={false} />
+                  <Spinner />
                 ) : latestTransactions.length > 0 ? (
                   latestTransactions.map((transaction) => (
                     <Box

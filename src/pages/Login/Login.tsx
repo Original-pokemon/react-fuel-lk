@@ -1,25 +1,25 @@
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { IconButton, InputAdornment } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Controller, useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import Spinner from '#root/components/Spinner/Spinner';
-import { useAuthStore } from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import AppRoute from '#root/const/app-route';
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Box from "@mui/material/Box";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { IconButton, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Controller, useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import Spinner from "#root/components/Spinner/Spinner";
+import { useAuthStore } from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import AppRoute from "#root/const/app-route";
 
 type LoginFormData = {
   username: string;
@@ -30,17 +30,17 @@ type LoginFormData = {
 const schema = yup.object({
   username: yup
     .string()
-    .required('Имя пользователя обязательно.')
+    .required("Имя пользователя обязательно.")
     .matches(
       /^[\w!#$%&*.?@-]+$/,
-      'Пожалуйста, введите валидное имя пользователя.',
+      "Пожалуйста, введите валидное имя пользователя.",
     )
     .trim(),
   password: yup
     .string()
-    .required('Пароль обязателен.')
-    .min(3, 'Пароль должен содержать не менее 3 символов.')
-    .matches(/^\S*$/, 'Пароль не должен содержать пробелы.'),
+    .required("Пароль обязателен.")
+    .min(3, "Пароль должен содержать не менее 3 символов.")
+    .matches(/^\S*$/, "Пароль не должен содержать пробелы."),
   rememberMe: yup.boolean().default(false),
 });
 
@@ -69,10 +69,10 @@ function Login() {
   } = useForm<LoginFormData>({
     resolver: yupResolver(schema),
     delayError: 500,
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      username: '',
-      password: '',
+      username: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -94,16 +94,16 @@ function Login() {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      {isLoading && <Spinner fullscreen={false} size={70} />}
+      {isLoading && <Spinner fullscreen size={70} />}
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
@@ -124,7 +124,7 @@ function Login() {
                 {...field}
                 error={!!errors.username}
                 sx={(theme) => ({
-                  '& .MuiInputLabel-root': {
+                  "& .MuiInputLabel-root": {
                     color: theme.palette.text.primary,
                   },
                 })}
@@ -148,7 +148,7 @@ function Login() {
                 {...field}
                 error={!!errors.password}
                 sx={(theme) => ({
-                  '& .MuiInputLabel-root': {
+                  "& .MuiInputLabel-root": {
                     color: theme.palette.text.primary,
                   },
                 })}
@@ -158,7 +158,7 @@ function Login() {
                 fullWidth
                 label="Пароль"
                 autoComplete="current-password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 onKeyDown={handleKeyPress}
                 InputProps={{
                   endAdornment: (
@@ -183,7 +183,7 @@ function Login() {
                     value={field.value}
                     sx={(theme) => ({
                       color: theme.palette.grey[500],
-                      '&.Mui-checked': {
+                      "&.Mui-checked": {
                         color: theme.palette.text.primary,
                       },
                     })}
@@ -201,7 +201,7 @@ function Login() {
             sx={{ mt: 3, mb: 2 }}
             disabled={isLoading || !isValid}
           >
-            {isLoading ? 'Вход...' : 'Войти'}
+            {isLoading ? "Вход..." : "Войти"}
           </Button>
         </Box>
       </Box>

@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { FuelWalletType } from '#root/types';
-import { useAppStore } from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import Spinner from '#root/components/Spinner/Spinner';
-import InfoBox from '../InfoBox/InfoBox';
+import { useEffect } from "react";
+import { FuelWalletType } from "#root/types";
+import { useAppStore } from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import Spinner from "#root/components/Spinner/Spinner";
+import InfoBox from "../InfoBox/InfoBox";
 
 function FirmWalletDisplay({ fuelWallet }: { fuelWallet: FuelWalletType[] }) {
   const api = useApi();
@@ -18,7 +18,7 @@ function FirmWalletDisplay({ fuelWallet }: { fuelWallet: FuelWalletType[] }) {
   }, [nomenclature, isIdle, fetchNomenclatureData, api]);
 
   if (!nomenclature) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   // Фильтруем только те записи, у которых есть fuelname и remain > 0
@@ -38,7 +38,7 @@ function FirmWalletDisplay({ fuelWallet }: { fuelWallet: FuelWalletType[] }) {
   const dataToShow =
     filteredWalletData.length > 0
       ? filteredWalletData
-      : [{ 'Нет топлива': '' }];
+      : [{ "Нет топлива": "" }];
 
   return <InfoBox title="Баланс топлива" data={dataToShow} />;
 }

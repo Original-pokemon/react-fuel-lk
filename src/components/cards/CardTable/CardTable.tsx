@@ -45,7 +45,7 @@ function CardTable({ cards }: CardsTable) {
   );
 
   if (isIdle) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   if (isError) {

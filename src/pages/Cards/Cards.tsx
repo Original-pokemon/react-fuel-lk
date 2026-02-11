@@ -402,7 +402,7 @@ function Cards() {
   }, [startDate, endDate, authData?.firmId, fetchTransactions, api]);
 
   if (isLoading) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   return (
@@ -542,7 +542,7 @@ function Cards() {
                     minHeight: "200px",
                   }}
                 >
-                  <Spinner fullscreen={false} />
+                  <Spinner />
                 </Box>
               ) : (
                 <MonthlyExpensesView

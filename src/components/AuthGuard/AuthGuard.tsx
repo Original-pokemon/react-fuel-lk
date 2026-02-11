@@ -1,12 +1,12 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from "react-router-dom";
 
-import { useEffect } from 'react';
-import { getToken } from '#root/services/api/token';
-import { useAuthStore } from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import AppRoute from '#root/const/app-route';
-import Spinner from '../Spinner/Spinner';
+import { useEffect } from "react";
+import { getToken } from "#root/services/api/token";
+import { useAuthStore } from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import AppRoute from "#root/const/app-route";
+import Spinner from "../Spinner/Spinner";
 
 function AuthGuard(): React.JSX.Element {
   const api = useApi();
@@ -32,7 +32,7 @@ function AuthGuard(): React.JSX.Element {
   }, [isError, token, navigate, logout]);
 
   if (isLoading) {
-    return <Spinner fullscreen={false} size={100} />;
+    return <Spinner fullscreen size={100} />;
   }
 
   return <Outlet />;

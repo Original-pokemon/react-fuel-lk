@@ -4,20 +4,20 @@ import {
   Theme,
   Typography,
   useMediaQuery,
-} from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
-import { useEffect } from 'react';
-import HomeIcon from '@mui/icons-material/Home';
+} from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { useEffect } from "react";
+import HomeIcon from "@mui/icons-material/Home";
 
-import ContractTable from '#root/components/contracts/ContractTable/ContractTable';
-import ContractList from '#root/components/contracts/ContractList/ContractList';
-import { useApiResponseStore, useAuthStore } from '#root/store';
-import { useApi } from '#root/hooks';
-import { Status } from '#root/const';
-import Spinner from '#root/components/Spinner/Spinner';
-import PageLayout from '#root/components/layouts/PageLayout/PageLayout';
-import AppRoute from '#root/const/app-route';
-import ContractsStyledBox from './Contracts.style';
+import ContractTable from "#root/components/contracts/ContractTable/ContractTable";
+import ContractList from "#root/components/contracts/ContractList/ContractList";
+import { useApiResponseStore, useAuthStore } from "#root/store";
+import { useApi } from "#root/hooks";
+import { Status } from "#root/const";
+import Spinner from "#root/components/Spinner/Spinner";
+import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
+import AppRoute from "#root/const/app-route";
+import ContractsStyledBox from "./Contracts.style";
 
 function Contracts() {
   const api = useApi();
@@ -28,7 +28,7 @@ function Contracts() {
   const isLoading = status === Status.Loading;
   const contracts = firm?.contracts;
   const isSmallScreen = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
+    theme.breakpoints.down("sm"),
   );
 
   useEffect(() => {
@@ -38,7 +38,7 @@ function Contracts() {
   }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
 
   if (isLoading) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   return (

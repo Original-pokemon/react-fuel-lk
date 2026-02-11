@@ -231,7 +231,7 @@ function Transitions() {
   ]);
 
   if (isLoadingTransactions) {
-    return <Spinner fullscreen={false} />;
+    return <Spinner />;
   }
 
   return (
