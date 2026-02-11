@@ -235,9 +235,8 @@ function Transitions() {
   }
 
   return (
-    <PageLayout
-      title="Транзакции"
-      breadcrumbs={
+    <PageLayout>
+      <PageLayout.Breadcrumbs>
         <Breadcrumbs
           aria-label="breadcrumb"
           sx={{ mb: 2 }}
@@ -254,44 +253,46 @@ function Transitions() {
           </Link>
           <Typography color="text.primary">Транзакции</Typography>
         </Breadcrumbs>
-      }
-      filters={[
-        <DateRangePicker
-          key={1}
-          initialStartDate={startDate}
-          initialEndDate={endDate}
-          onDateChange={handleDateChange}
-        />,
-        <Filter key={2} onChange={handleApplyFilters}>
-          <Filter.FilterTextField
-            id={FILTER_BY_CARD_NAME}
-            title="Номер карты"
-            defaultValue={cardNumber || ""}
+      </PageLayout.Breadcrumbs>
+      <PageLayout.Title>Транзакции</PageLayout.Title>
+      <PageLayout.Toolbar>
+        <PageLayout.Filters>
+          <DateRangePicker
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            onDateChange={handleDateChange}
           />
+          <Filter onChange={handleApplyFilters}>
+            <Filter.FilterTextField
+              id={FILTER_BY_CARD_NAME}
+              title="Номер карты"
+              defaultValue={cardNumber || ""}
+            />
 
-          <Filter.SingleChoice
-            id={FILTER_BY_TRANSACTION_TYPE_NAME}
-            title="Тип операции"
-            defaultValue={transactionType}
-            options={transactionTypeOptions}
-          />
+            <Filter.SingleChoice
+              id={FILTER_BY_TRANSACTION_TYPE_NAME}
+              title="Тип операции"
+              defaultValue={transactionType}
+              options={transactionTypeOptions}
+            />
 
-          <Filter.MultipleChoice
-            id={FILTER_BY_FUEL_TYPE_NAME}
-            title="Топливо"
-            options={fuelTypeOptions}
+            <Filter.MultipleChoice
+              id={FILTER_BY_FUEL_TYPE_NAME}
+              title="Топливо"
+              options={fuelTypeOptions}
+            />
+          </Filter>
+        </PageLayout.Filters>
+        <PageLayout.Sorting>
+          <SortMenu
+            label="Сортировка"
+            onSortChange={handleSortChange}
+            currentSort={currentSortOption}
+            sortOptions={sortOptions}
           />
-        </Filter>,
-      ]}
-      sorting={
-        <SortMenu
-          label="Сортировка"
-          onSortChange={handleSortChange}
-          currentSort={currentSortOption}
-          sortOptions={sortOptions}
-        />
-      }
-      content={
+        </PageLayout.Sorting>
+      </PageLayout.Toolbar>
+      <PageLayout.Content>
         <Box
           className="transactions-table"
           bgcolor={isSmallScreen ? "background.default" : "background.paper"}
@@ -311,8 +312,8 @@ function Transitions() {
             />
           )}
         </Box>
-      }
-    />
+      </PageLayout.Content>
+    </PageLayout>
   );
 }
 

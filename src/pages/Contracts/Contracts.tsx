@@ -42,9 +42,8 @@ function Contracts() {
   }
 
   return (
-    <PageLayout
-      title="Договоры"
-      breadcrumbs={
+    <PageLayout>
+      <PageLayout.Breadcrumbs>
         <Breadcrumbs
           aria-label="breadcrumb"
           sx={{ mb: 2 }}
@@ -61,8 +60,9 @@ function Contracts() {
           </Link>
           <Typography color="text.primary">Договоры</Typography>
         </Breadcrumbs>
-      }
-      content={
+      </PageLayout.Breadcrumbs>
+      <PageLayout.Title>Договоры</PageLayout.Title>
+      <PageLayout.Content>
         <ContractsStyledBox className="contracts">
           {isSmallScreen ? (
             <ContractList contracts={contracts || []} isLoading={isLoading} />
@@ -70,8 +70,8 @@ function Contracts() {
             <ContractTable contracts={contracts || []} />
           )}
         </ContractsStyledBox>
-      }
-    />
+      </PageLayout.Content>
+    </PageLayout>
   );
 }
 

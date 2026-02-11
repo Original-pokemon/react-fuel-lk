@@ -407,9 +407,8 @@ function Cards() {
 
   return (
     <>
-      <PageLayout
-        title="Карты"
-        breadcrumbs={
+      <PageLayout>
+        <PageLayout.Breadcrumbs>
           <Breadcrumbs
             aria-label="breadcrumb"
             sx={{ mb: 2 }}
@@ -426,76 +425,78 @@ function Cards() {
             </Link>
             <Typography color="text.primary">Карты</Typography>
           </Breadcrumbs>
-        }
-        filters={[
-          <div key="date-filter-section">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "8px",
-              }}
-            >
-              <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-                Фильтрация карт по дате последней операции
-              </Typography>
-              <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
-                <IconButton size="small" sx={{ padding: "2px" }}>
-                  <InfoIcon fontSize="small" color="action" />
-                </IconButton>
-              </Tooltip>
+        </PageLayout.Breadcrumbs>
+        <PageLayout.Title>Карты</PageLayout.Title>
+        <PageLayout.Toolbar>
+          <PageLayout.Filters>
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                  Фильтрация карт по дате последней операции
+                </Typography>
+                <Tooltip title="Будут показаны только карты, у которых последняя транзакция была в выбранном диапазоне дат">
+                  <IconButton size="small" sx={{ padding: "2px" }}>
+                    <InfoIcon fontSize="small" color="action" />
+                  </IconButton>
+                </Tooltip>
+              </div>
+              <DateRangePicker
+                initialStartDate={startDate}
+                initialEndDate={endDate}
+                onDateChange={handleDateChange}
+              />
             </div>
-            <DateRangePicker
-              initialStartDate={startDate}
-              initialEndDate={endDate}
-              onDateChange={handleDateChange}
-            />
-          </div>,
-          <Filter key={2} onChange={handleApplyFilters}>
-            <Filter.FilterTextField
-              id={FILTER_BY_CARD_NUMBER_NAME}
-              title="Номер карты"
-              defaultValue={cardNumber}
-            />
+            <Filter onChange={handleApplyFilters}>
+              <Filter.FilterTextField
+                id={FILTER_BY_CARD_NUMBER_NAME}
+                title="Номер карты"
+                defaultValue={cardNumber}
+              />
 
-            <Filter.SingleChoice
-              id={FILTER_BY_CARD_STATUS_NAME}
-              title="Статус карты"
-              defaultValue={cardStatus}
-              options={cardStatusOptions}
-            />
+              <Filter.SingleChoice
+                id={FILTER_BY_CARD_STATUS_NAME}
+                title="Статус карты"
+                defaultValue={cardStatus}
+                options={cardStatusOptions}
+              />
 
-            <Filter.SingleChoice
-              id={FILTER_BY_WALLET_TYPE_NAME}
-              title="Тип кошелька"
-              defaultValue={walletType}
-              options={walletTypeOptions}
-            />
+              <Filter.SingleChoice
+                id={FILTER_BY_WALLET_TYPE_NAME}
+                title="Тип кошелька"
+                defaultValue={walletType}
+                options={walletTypeOptions}
+              />
 
-            <Filter.MultipleChoice
-              id={FILTER_BY_CARD_SOST_NAME}
-              title="Состояние"
-              options={cardSostOptions}
-              defaultValue={["выдана"]}
+              <Filter.MultipleChoice
+                id={FILTER_BY_CARD_SOST_NAME}
+                title="Состояние"
+                options={cardSostOptions}
+                defaultValue={["выдана"]}
+              />
+            </Filter>
+          </PageLayout.Filters>
+          <PageLayout.Sorting>
+            <SortMenu
+              label="Сортировка"
+              onSortChange={handleSortChange}
+              currentSort={currentSortOption}
+              sortOptions={sortOptions}
             />
-          </Filter>,
-        ]}
-        sorting={
-          <SortMenu
-            label="Сортировка"
-            onSortChange={handleSortChange}
-            currentSort={currentSortOption}
-            sortOptions={sortOptions}
-          />
-        }
-        content={
+          </PageLayout.Sorting>
+        </PageLayout.Toolbar>
+        <PageLayout.Content>
           <Box>
             <Tabs
               value={activeTab}
               onChange={(_, newValue) => {
                 setActiveTab(newValue);
-                // Обновляем URL параметры сразу при клике
                 setSearchParameters((previous) => {
                   const newParameters = new URLSearchParams(previous);
                   if (newValue === 0) {
@@ -557,8 +558,8 @@ function Cards() {
                 />
               ))}
           </Box>
-        }
-      />
+        </PageLayout.Content>
+      </PageLayout>
       <ReportPreviewModal
         open={showReportPreview}
         pdfBase64={
