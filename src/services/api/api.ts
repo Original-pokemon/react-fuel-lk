@@ -3,18 +3,18 @@ import axios, {
   AxiosInstance,
   AxiosResponse,
   InternalAxiosRequestConfig,
-} from 'axios';
-import { toast } from 'react-toastify';
-import { StatusCodes } from 'http-status-codes';
-import { BACKEND_URL, REQUEST_TIMEOUT } from './const';
-import { getToken } from './token';
+} from "axios";
+import { toast } from "react-toastify";
+import { StatusCodes } from "http-status-codes";
+import { BACKEND_URL, REQUEST_TIMEOUT } from "./const";
+import { getToken } from "./token";
 
 // Retry configuration
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
 // Extend axios config to include retry count
-declare module 'axios' {
+declare module "axios" {
   interface InternalAxiosRequestConfig {
     retryCount?: number;
   }
@@ -40,7 +40,7 @@ const createAPI = (): AxiosInstance => {
     baseURL: BACKEND_URL,
     timeout: REQUEST_TIMEOUT,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
@@ -64,17 +64,23 @@ const createAPI = (): AxiosInstance => {
       }
 
       // Check if we should retry
+      const isIdempotent = ["get", "head", "options"].includes(
+        config.method?.toLowerCase() || "",
+      );
+
       const shouldRetry =
-        !response ||
-        (response.status >= 500 && response.status < 600) ||
-        code === 'NETWORK_ERROR' ||
-        code === 'TIMEOUT';
+        isIdempotent &&
+        (!response ||
+          (response.status >= 500 && response.status < 600) ||
+          code === "ERR_NETWORK" ||
+          code === "ECONNABORTED");
 
       if (shouldRetry && (config.retryCount || 0) < MAX_RETRIES) {
         config.retryCount = (config.retryCount || 0) + 1;
 
-        // Wait before retrying with exponential backoff
-        const delay = RETRY_DELAY * (config.retryCount || 1);
+        // Wait before retrying with exponential backoff and jitter
+        const jitter = Math.random() * 500;
+        const delay = RETRY_DELAY * Math.pow(2, config.retryCount - 1) + jitter;
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Retry the request
@@ -83,19 +89,19 @@ const createAPI = (): AxiosInstance => {
 
       // If we've exhausted retries or shouldn't retry, show error
       if (!response) {
-        const errorResponseToastId = 'error-response';
+        const errorResponseToastId = "error-response";
         if (!toast.isActive(errorResponseToastId)) {
-          toast.error('Произошла ошибка при выполнении запроса', {
+          toast.error("Произошла ошибка при выполнении запроса", {
             toastId: errorResponseToastId,
           });
         }
       }
       if (response && shouldDisplayError(response)) {
         const ErrorMessage = {
-          [StatusCodes.BAD_REQUEST]: 'Некорректные данные.',
-          [StatusCodes.UNAUTHORIZED]: 'Неверные имя пользователя или пароль.',
-          [StatusCodes.NOT_FOUND]: 'Страница не найдена.',
-          [StatusCodes.INTERNAL_SERVER_ERROR]: 'Внутренняя ошибка сервера.',
+          [StatusCodes.BAD_REQUEST]: "Некорректные данные.",
+          [StatusCodes.UNAUTHORIZED]: "Неверные имя пользователя или пароль.",
+          [StatusCodes.NOT_FOUND]: "Страница не найдена.",
+          [StatusCodes.INTERNAL_SERVER_ERROR]: "Внутренняя ошибка сервера.",
         };
 
         if (response.status in ErrorMessage) {
