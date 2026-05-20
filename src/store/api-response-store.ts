@@ -43,12 +43,16 @@ export const useApiResponseStore = create<ApiResponseState>((set) => ({
         ...essentialData
       } = adaptedData;
 
-      const firmData = firms.find((f: FirmDataType) => f.firmId === firmId);
-      const cardsList = firmData
-        ? Object.values(firmData.cards || {}).sort(
-            (a, b) => a.cardNumber - b.cardNumber,
-          )
-        : [];
+      const firmData = firms?.find((f: FirmDataType) => f.firmId === firmId);
+
+      if (!firmData) {
+        set({ status: Status.Empty, firm: undefined, cards: [] });
+        return;
+      }
+
+      const cardsList = Object.values(firmData.cards || {}).sort(
+        (a, b) => a.cardNumber - b.cardNumber,
+      );
 
       set({
         status: Status.Success,

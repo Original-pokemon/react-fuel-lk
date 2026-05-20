@@ -69,6 +69,7 @@ function Home() {
 
   const isIdle = apiResponseStatus === Status.Idle;
   const isSuccess = apiResponseStatus === Status.Success;
+  const isEmpty = apiResponseStatus === Status.Empty;
   const isAppIdle = appStatus === Status.Idle;
   const isMapMarkersIdle = mapMarkersStatus === Status.Idle;
 
@@ -207,6 +208,35 @@ function Home() {
 
   if (apiResponseStatus === Status.Loading || !nomenclature) {
     return <Spinner />;
+  }
+
+  if (isEmpty) {
+    return (
+      <PageLayout>
+        <PageLayout.Content>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              py: 8,
+            }}
+          >
+            <Typography variant="h6" color="text.secondary">
+              Данные компании недоступны
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Сервер вернул пустой ответ. Попробуйте обновить страницу.
+            </Typography>
+            <Button variant="outlined" onClick={() => window.location.reload()}>
+              Обновить страницу
+            </Button>
+          </Box>
+        </PageLayout.Content>
+      </PageLayout>
+    );
   }
 
   return (
