@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { toast } from 'react-toastify';
-import { AxiosError, AxiosInstance } from 'axios';
+import { AxiosError } from 'axios';
 import type { AuthInfoType, StatusType } from '#root/types';
 import { Status } from '#root/const';
+import { api } from '#root/services/api/api';
 import { dropToken, saveToken } from '#root/services/api/token';
 import { APIRoute } from './api-route';
 
@@ -29,9 +30,8 @@ interface AuthState {
   authData?: AuthInfoType;
   postAuthData: (
     credentials: { username: string; password: string; rememberMe: boolean },
-    api: AxiosInstance,
   ) => Promise<void>;
-  fetchAuthInfo: (api: AxiosInstance) => Promise<void>;
+  fetchAuthInfo: () => Promise<void>;
   logout: () => void;
 }
 
@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   status: Status.Idle,
   authData: undefined,
 
-  postAuthData: async ({ username, password, rememberMe }, api) => {
+  postAuthData: async ({ username, password, rememberMe }) => {
     set({ status: Status.Loading });
     try {
       const { data } = await api.post<
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  fetchAuthInfo: async (api) => {
+  fetchAuthInfo: async () => {
     set({ status: Status.Loading });
     try {
       const { data } = await api.get<AuthInfoType>(APIRoute.AuthInfo);

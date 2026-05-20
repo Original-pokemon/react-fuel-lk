@@ -1,14 +1,14 @@
 import { create } from "zustand";
-import { AxiosInstance } from "axios";
 import type { CardType, FirmInfoType, StatusType } from "#root/types";
 import { Status } from "#root/const";
+import { api } from "#root/services/api/api";
 import { APIRoute } from "./api-route";
 
 interface FirmState {
   status: StatusType;
   firmInfo?: Omit<FirmInfoType, "cards">;
   cards: CardType[];
-  fetchFirmData: (firmId: number, api: AxiosInstance) => Promise<void>;
+  fetchFirmData: (firmId: number) => Promise<void>;
 }
 
 export const useFirmStore = create<FirmState>((set) => ({
@@ -16,7 +16,7 @@ export const useFirmStore = create<FirmState>((set) => ({
   firmInfo: undefined,
   cards: [],
 
-  fetchFirmData: async (firmId, api) => {
+  fetchFirmData: async (firmId) => {
     set({ status: Status.Loading });
     try {
       const { data } = await api.get<FirmInfoType[]>(APIRoute.FirmInfo(firmId));

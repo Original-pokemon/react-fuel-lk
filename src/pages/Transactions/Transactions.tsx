@@ -12,7 +12,6 @@ import HomeIcon from "@mui/icons-material/Home";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import TransactionsTable from "#root/components/transactions/TransactionsTable/TransactionsTable";
 import { useTransactionStore, useAppStore, useAuthStore } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import Spinner from "#root/components/Spinner/Spinner";
 import DateRangePicker from "#root/components/transactions/DateRangePicker/DateRangePicker";
@@ -73,7 +72,6 @@ const FILTER_BY_TRANSACTION_TYPE_NAME = "filterByTransactionType";
 const FILTER_BY_FUEL_TYPE_NAME = "filterByFuelType";
 
 function Transitions() {
-  const api = useApi();
   const { authData } = useAuthStore();
   const {
     transactions,
@@ -219,7 +217,6 @@ function Transitions() {
         fromday: startDate.format("YYYY-MM-DD"),
         day: endDate.format("YYYY-MM-DD"),
       },
-      api,
     );
   }, [
     startDate,
@@ -227,7 +224,6 @@ function Transitions() {
     cardNumber,
     authData?.firmId,
     fetchTransactions,
-    api,
   ]);
 
   if (isLoadingTransactions) {

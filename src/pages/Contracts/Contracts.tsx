@@ -12,7 +12,6 @@ import HomeIcon from "@mui/icons-material/Home";
 import ContractTable from "#root/components/contracts/ContractTable/ContractTable";
 import ContractList from "#root/components/contracts/ContractList/ContractList";
 import { useApiResponseStore, useAuthStore } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import Spinner from "#root/components/Spinner/Spinner";
 import PageLayout from "#root/components/layouts/PageLayout/PageLayout";
@@ -20,7 +19,6 @@ import AppRoute from "#root/const/app-route";
 import ContractsStyledBox from "./Contracts.style";
 
 function Contracts() {
-  const api = useApi();
   const { authData } = useAuthStore();
   const { firm, status, fetchApiResponseData } = useApiResponseStore();
 
@@ -33,9 +31,9 @@ function Contracts() {
 
   useEffect(() => {
     if (isIdle && authData?.firmId) {
-      fetchApiResponseData(authData.firmId, api);
+      fetchApiResponseData(authData.firmId);
     }
-  }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
+  }, [isIdle, authData?.firmId, fetchApiResponseData]);
 
   if (isLoading) {
     return <Spinner />;

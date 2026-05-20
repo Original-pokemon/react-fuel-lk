@@ -15,14 +15,12 @@ import {
   useApiResponseStore,
   useFirmStore,
 } from './store';
-import { useApi } from './hooks';
 import { Status } from './const';
 import Layout from './components/layouts/Layout';
 import 'react-toastify/dist/ReactToastify.css';
 import AppRoute from './const/app-route';
 
 function App() {
-  const api = useApi();
   const { authData, status: authStatus } = useAuthStore();
   const { fetchNomenclatureData } = useAppStore();
   const { fetchApiResponseData } = useApiResponseStore();
@@ -32,9 +30,9 @@ function App() {
 
   useEffect(() => {
     if (isAuthSuccess && authData?.firmId) {
-      fetchApiResponseData(authData.firmId, api);
-      fetchFirmData(authData.firmId, api);
-      fetchNomenclatureData(api);
+      fetchApiResponseData(authData.firmId);
+      fetchFirmData(authData.firmId);
+      fetchNomenclatureData();
     }
   }, [
     isAuthSuccess,
@@ -42,7 +40,6 @@ function App() {
     fetchApiResponseData,
     fetchFirmData,
     fetchNomenclatureData,
-    api,
   ]);
 
   return (

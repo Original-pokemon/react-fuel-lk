@@ -27,7 +27,6 @@ import {
   useAuthStore,
   useReportStore,
 } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import aggregateMonthlyExpenses from "#root/utils/monthly-expenses";
 import { base64ToBlob, downloadBlob } from "#root/utils/file-download";
@@ -127,7 +126,6 @@ const sortOptions = [
 ];
 
 function Cards() {
-  const api = useApi();
   const { authData } = useAuthStore();
   const {
     status: apiResponseStatus,
@@ -261,7 +259,7 @@ function Cards() {
     const isCached = isMonthCached(monthKey, authData.firmId);
 
     try {
-      await fetchReport(monthKey, authData.firmId, api);
+      await fetchReport(monthKey, authData.firmId);
       // Показываем preview только если отчет уже был в кеше (повторный клик)
       if (isCached) {
         setPreviewMonthKey(monthKey);
@@ -381,9 +379,9 @@ function Cards() {
 
   useEffect(() => {
     if (isIdle && authData?.firmId) {
-      fetchApiResponseData(authData.firmId, api);
+      fetchApiResponseData(authData.firmId);
     }
-  }, [isIdle, authData?.firmId, fetchApiResponseData, api]);
+  }, [isIdle, authData?.firmId, fetchApiResponseData]);
 
   // Загружаем транзакции для отчета по расходам
   useEffect(() => {
@@ -395,11 +393,10 @@ function Cards() {
         fromday: startDate.format("YYYY-MM-DD"),
         day: endDate.format("YYYY-MM-DD"),
       },
-      api,
     ).finally(() => {
       setIsReportLoading(false);
     });
-  }, [startDate, endDate, authData?.firmId, fetchTransactions, api]);
+  }, [startDate, endDate, authData?.firmId, fetchTransactions]);
 
   if (isLoading) {
     return <Spinner />;

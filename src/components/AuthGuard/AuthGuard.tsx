@@ -3,13 +3,11 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getToken } from "#root/services/api/token";
 import { useAuthStore } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import AppRoute from "#root/const/app-route";
 import Spinner from "../Spinner/Spinner";
 
 function AuthGuard(): React.JSX.Element {
-  const api = useApi();
   const navigate = useNavigate();
   const { status, fetchAuthInfo, logout } = useAuthStore();
   const token = getToken();
@@ -20,9 +18,9 @@ function AuthGuard(): React.JSX.Element {
 
   useEffect(() => {
     if (isIdle && token) {
-      fetchAuthInfo(api);
+      fetchAuthInfo();
     }
-  }, [isIdle, token, fetchAuthInfo, api]);
+  }, [isIdle, token, fetchAuthInfo]);
 
   useEffect(() => {
     if (isError || !token) {

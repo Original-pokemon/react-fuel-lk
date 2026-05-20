@@ -18,7 +18,6 @@ import {
   Box,
 } from "@mui/material";
 import { useAuthStore, useFirmStore } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import Logo from "../logo/Logo";
 
@@ -28,7 +27,6 @@ type NavbarProperties = {
 };
 
 function Navbar({ onMenuClick, className }: NavbarProperties) {
-  const api = useApi();
   const { authData, logout } = useAuthStore();
   const { status, firmInfo, fetchFirmData } = useFirmStore();
 
@@ -51,9 +49,9 @@ function Navbar({ onMenuClick, className }: NavbarProperties) {
 
   useEffect(() => {
     if (!firmName && isIdle && authData?.firmId) {
-      fetchFirmData(authData.firmId, api);
+      fetchFirmData(authData.firmId);
     }
-  }, [firmName, isIdle, authData?.firmId, fetchFirmData, api]);
+  }, [firmName, isIdle, authData?.firmId, fetchFirmData]);
 
   return (
     <AppBar position="static" className={className}>

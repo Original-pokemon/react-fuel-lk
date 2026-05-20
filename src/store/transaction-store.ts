@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { AxiosInstance } from "axios";
 import type { StatusType, TransactionType } from "#root/types";
 import { Status } from "#root/const";
+import { api } from "#root/services/api/api";
 import { APIRoute } from "./api-route";
 
 type FetchTransactionsParametersType = {
@@ -18,7 +18,6 @@ interface TransactionState {
   transactions: TransactionType[];
   fetchTransactions: (
     parameters: FetchTransactionsParametersType,
-    api: AxiosInstance,
   ) => Promise<void>;
 }
 
@@ -26,7 +25,7 @@ export const useTransactionStore = create<TransactionState>((set) => ({
   status: Status.Idle,
   transactions: [],
 
-  fetchTransactions: async (parameters, api) => {
+  fetchTransactions: async (parameters) => {
     set({ status: Status.Loading });
     try {
       const { firmid, cardnum, day, fromday } = parameters;

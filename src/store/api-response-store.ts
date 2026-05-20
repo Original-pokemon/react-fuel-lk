@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { AxiosInstance } from "axios";
 import type {
   StatusType,
   ApiResponseType,
@@ -7,6 +6,7 @@ import type {
   CardInfoType,
 } from "#root/types";
 import { Status } from "#root/const";
+import { api } from "#root/services/api/api";
 import { APIRoute } from "./api-route";
 import { adaptApiResponse } from "../utils/api-adapter";
 
@@ -17,7 +17,7 @@ interface ApiResponseState {
   firm?: FirmDataType;
   data?: ApiResponseType;
   cards: CardInfoType[];
-  fetchApiResponseData: (firmId: number, api: AxiosInstance) => Promise<void>;
+  fetchApiResponseData: (firmId: number) => Promise<void>;
 }
 
 export const useApiResponseStore = create<ApiResponseState>((set) => ({
@@ -28,7 +28,7 @@ export const useApiResponseStore = create<ApiResponseState>((set) => ({
   pricetypes: undefined,
   cards: [],
 
-  fetchApiResponseData: async (firmId, api) => {
+  fetchApiResponseData: async (firmId) => {
     set({ status: Status.Loading });
     try {
       const { data } = await api.get<ApiResponseType>(APIRoute.FullData);

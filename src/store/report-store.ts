@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import type { AxiosInstance } from "axios";
 import { Status } from "#root/const";
 import type { StatusType } from "#root/types/status";
+import { api } from "#root/services/api/api";
 import { APIRoute } from "./api-route";
 
 interface ReportData {
@@ -14,11 +14,7 @@ interface ReportState {
   cache: Map<string, ReportData>;
   currentReport: ReportData | null;
   loadingMonthKeys: Set<string>;
-  fetchReport: (
-    monthKey: string,
-    firmId: number,
-    api: AxiosInstance,
-  ) => Promise<void>;
+  fetchReport: (monthKey: string, firmId: number) => Promise<void>;
   getReport: (monthKey: string, firmId: number) => ReportData | null;
   clearCurrentReport: () => void;
   clearCache: () => void;
@@ -32,7 +28,7 @@ export const useReportStore = create<ReportState>((set, get) => ({
   currentReport: null,
   loadingMonthKeys: new Set(),
 
-  fetchReport: async (monthKey: string, firmId: number, api: AxiosInstance) => {
+  fetchReport: async (monthKey: string, firmId: number) => {
     const cacheKey = `${firmId}-${monthKey}`;
     const { cache, loadingMonthKeys } = get();
 

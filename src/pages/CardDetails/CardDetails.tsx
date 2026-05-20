@@ -1,11 +1,8 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useApiResponseStore, useAuthStore } from "#root/store";
-import { useApi } from "#root/hooks";
-
 function CardDetails() {
   const { id: cardnum } = useParams<{ id: string }>();
-  const api = useApi();
   const { authData } = useAuthStore();
   const { cards, fetchApiResponseData } = useApiResponseStore();
 
@@ -14,9 +11,9 @@ function CardDetails() {
 
   useEffect(() => {
     if (!card && authData?.firmId) {
-      fetchApiResponseData(authData.firmId, api);
+      fetchApiResponseData(authData.firmId);
     }
-  }, [authData?.firmId, card, fetchApiResponseData, api]);
+  }, [authData?.firmId, card, fetchApiResponseData]);
 
   if (!card) {
     return <div>Карта с номером {cardnum} не найдена</div>;

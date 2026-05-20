@@ -9,7 +9,6 @@ import {
   useMapMarkersStore,
   useAuthStore,
 } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import Spinner from "#root/components/Spinner/Spinner";
 import { formatNumberWithSpaces } from "#root/utils/format-number";
@@ -44,7 +43,6 @@ const mapConfig = {
 };
 
 function Home() {
-  const api = useApi();
   const navigate = useNavigate();
   const { authData } = useAuthStore();
   const {
@@ -153,15 +151,15 @@ function Home() {
 
   useEffect(() => {
     if (!firmInfo && isIdle && authData?.firmId) {
-      fetchApiResponseData(authData.firmId, api);
+      fetchApiResponseData(authData.firmId);
     }
-  }, [firmInfo, isIdle, authData?.firmId, fetchApiResponseData, api]);
+  }, [firmInfo, isIdle, authData?.firmId, fetchApiResponseData]);
 
   useEffect(() => {
     if (!nomenclature && isAppIdle) {
-      fetchNomenclatureData(api);
+      fetchNomenclatureData();
     }
-  }, [nomenclature, isAppIdle, fetchNomenclatureData, api]);
+  }, [nomenclature, isAppIdle, fetchNomenclatureData]);
 
   useEffect(() => {
     if (isMapMarkersIdle) {
@@ -179,10 +177,9 @@ function Home() {
           fromday: dayjs().subtract(30, "day").format("YYYY-MM-DD"),
           day: dayjs().format("YYYY-MM-DD"),
         },
-        api,
       ).finally(() => setIsLoadingTransactions(false));
     }
-  }, [firmInfo, transactions.length, fetchTransactions, api]);
+  }, [firmInfo, transactions.length, fetchTransactions]);
 
   const latestTransactions = transactions.slice(0, 5);
 

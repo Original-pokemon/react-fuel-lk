@@ -17,7 +17,6 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Spinner from "#root/components/Spinner/Spinner";
 import { useAuthStore } from "#root/store";
-import { useApi } from "#root/hooks";
 import { Status } from "#root/const";
 import AppRoute from "#root/const/app-route";
 
@@ -53,7 +52,6 @@ const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
 };
 
 function Login() {
-  const api = useApi();
   const { status, postAuthData } = useAuthStore();
   const navigate = useNavigate();
 
@@ -78,7 +76,7 @@ function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    await postAuthData(data, api);
+    await postAuthData(data);
   };
 
   const togglePasswordVisibility = () => {
