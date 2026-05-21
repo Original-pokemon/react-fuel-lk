@@ -66,14 +66,12 @@ function Home() {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const isIdle = apiResponseStatus === Status.Idle;
-  const isSuccess = apiResponseStatus === Status.Success;
   const isEmpty = apiResponseStatus === Status.Empty;
+  const isError = apiResponseStatus === Status.Error;
   const isAppIdle = appStatus === Status.Idle;
   const isMapMarkersIdle = mapMarkersStatus === Status.Idle;
 
   const markers = prepareMarkers(mapMarkers || { features: [] });
-
-  const isLoaded = isSuccess && firmInfo;
 
   const totalCards = cards.length;
   const activeCards = cards.filter((c) => !c.blocked).length;
@@ -203,11 +201,11 @@ function Home() {
         .filter((item): item is NonNullable<typeof item> => item !== undefined)
     : [];
 
-  if (apiResponseStatus === Status.Loading || !nomenclature) {
+  if (isIdle || apiResponseStatus === Status.Loading || !nomenclature) {
     return <Spinner />;
   }
 
-  if (isEmpty) {
+  if (isError || isEmpty || !firmInfo) {
     return (
       <PageLayout>
         <PageLayout.Content>
@@ -222,10 +220,15 @@ function Home() {
             }}
           >
             <Typography variant="h6" color="text.secondary">
-              Данные компании недоступны
+              {isError
+                ? "Ошибка загрузки данных"
+                : "Данные компании недоступны"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Сервер вернул пустой ответ. Попробуйте обновить страницу.
+              {isError
+                ? "Не удалось получить данные с сервера."
+                : "Сервер вернул пустой ответ."}
+              {" "}Попробуйте обновить страницу.
             </Typography>
             <Button variant="outlined" onClick={() => window.location.reload()}>
               Обновить страницу
@@ -237,8 +240,7 @@ function Home() {
   }
 
   return (
-    isLoaded && (
-      <PageLayout>
+    <PageLayout>
         <PageLayout.Content>
           <Grid container spacing={3}>
             {/* Row 1: Key Metrics */}
@@ -540,7 +542,6 @@ function Home() {
           </Grid>
         </PageLayout.Content>
       </PageLayout>
-    )
   );
 }
 
