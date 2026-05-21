@@ -18,9 +18,10 @@ interface ApiResponseState {
   data?: ApiResponseType;
   cards: CardInfoType[];
   fetchApiResponseData: (firmId: number) => Promise<void>;
+  updateCardOwner: (cardNumber: number, owner: string) => Promise<void>;
 }
 
-export const useApiResponseStore = create<ApiResponseState>((set) => ({
+export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
   status: Status.Idle,
   data: undefined,
   fuelnames: undefined,
@@ -64,6 +65,25 @@ export const useApiResponseStore = create<ApiResponseState>((set) => ({
       });
     } catch {
       set({ status: Status.Error });
+    }
+  },
+
+  updateCardOwner: async (cardNumber, owner) => {
+    const prevCards = get().cards;
+
+    set((state) => ({
+      cards: state.cards.map((c) =>
+        c.cardNumber === cardNumber ? { ...c, cardOwner: owner } : c,
+      ),
+    }));
+
+    try {
+      await api.post(APIRoute.UpdateCardOwner(String(cardNumber)), {
+        cardowner: owner,
+      });
+    } catch (error) {
+      set({ cards: prevCards });
+      throw error;
     }
   },
 }));

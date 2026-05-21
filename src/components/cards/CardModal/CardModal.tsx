@@ -1,8 +1,22 @@
-import { Typography, Stack, Avatar } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {
+  Typography,
+  Stack,
+  Avatar,
+  IconButton,
+  TextField,
+  CircularProgress,
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+} from '@mui/icons-material';
 import { useSearchParams } from 'react-router-dom';
 import DataModal from '#root/components/layouts/data-layouts/DataModal/DataModal';
 import FuelChip from '#root/components/FuelChip/FuelChip';
 import { CardInfoType } from '#root/types';
+import { useApiResponseStore } from '#root/store';
 import LimitCell from '../CardTable/cells/LimitCell/LimitCell';
 import WalletTypeCell from '../CardTable/cells/WalletTypeCell/WalletTypeCell';
 import StatusCell from '../CardTable/cells/StatusCell/StatusCell';
@@ -15,14 +29,82 @@ type CardModalProperties = {
 
 function CardModal({ card }: CardModalProperties) {
   const [, setSearchParameters] = useSearchParams();
+  const { updateCardOwner } = useApiResponseStore();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [ownerValue, setOwnerValue] = useState(card.cardOwner);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setOwnerValue(card.cardOwner);
+    }
+  }, [card.cardOwner, isEditing]);
 
   const handleClose = () => {
     setSearchParameters((previousValue) => {
       previousValue.delete('modalcardnum');
-
       return previousValue;
     });
   };
+
+  const handleSave = async () => {
+    const trimmed = ownerValue.trim();
+    if (trimmed === card.cardOwner) {
+      setIsEditing(false);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateCardOwner(card.cardNumber, trimmed);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setOwnerValue(card.cardOwner);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') handleCancel();
+  };
+
+  const ownerValueNode = isEditing ? (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <TextField
+        size="small"
+        value={ownerValue}
+        onChange={(e) => setOwnerValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={isSaving}
+        autoFocus
+        sx={{ maxWidth: 200 }}
+      />
+      <IconButton size="small" onClick={handleSave} disabled={isSaving}>
+        {isSaving ? (
+          <CircularProgress size={16} />
+        ) : (
+          <CheckIcon fontSize="small" color="success" />
+        )}
+      </IconButton>
+      <IconButton size="small" onClick={handleCancel} disabled={isSaving}>
+        <CloseIcon fontSize="small" color="error" />
+      </IconButton>
+    </Stack>
+  ) : (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Typography variant="body1">
+        {card.cardOwner.trim() || 'Не указано'}
+      </Typography>
+      <IconButton size="small" onClick={() => setIsEditing(true)}>
+        <EditIcon fontSize="small" />
+      </IconButton>
+    </Stack>
+  );
 
   return (
     <DataModal
@@ -59,7 +141,7 @@ function CardModal({ card }: CardModalProperties) {
           rows={[
             {
               label: 'Владелец карты',
-              value: <Typography variant="body1">{card.cardOwner}</Typography>,
+              value: ownerValueNode,
             },
             {
               label: 'Статус',

@@ -7,6 +7,7 @@ const APIRoute = {
   FullData: "online/full",
   MapMarkers: "/api/map-markers",
   Report: "online/report",
+  UpdateCardOwner: (cardId: string | number) => `/admin/cards/${cardId}/cardowner`,
 } as const;
 
 export { APIRoute };
