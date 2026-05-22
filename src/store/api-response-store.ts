@@ -19,6 +19,7 @@ interface ApiResponseState {
   cards: CardInfoType[];
   fetchApiResponseData: (firmId: number) => Promise<void>;
   updateCardOwner: (cardNumber: number, owner: string) => Promise<void>;
+  updateCardLimit: (cardNumber: number, dayLimit: number, monthLimit: number) => Promise<void>;
 }
 
 export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
@@ -80,6 +81,28 @@ export const useApiResponseStore = create<ApiResponseState>((set, get) => ({
     try {
       await api.post(APIRoute.UpdateCardOwner(String(cardNumber)), {
         cardowner: owner,
+      });
+    } catch (error) {
+      set({ cards: prevCards });
+      throw error;
+    }
+  },
+
+  updateCardLimit: async (cardNumber, dayLimit, monthLimit) => {
+    const prevCards = get().cards;
+
+    set((state) => ({
+      cards: state.cards.map((c) =>
+        c.cardNumber === cardNumber
+          ? { ...c, dayLimit: String(dayLimit), monthLimit: String(monthLimit) }
+          : c,
+      ),
+    }));
+
+    try {
+      await api.post(APIRoute.UpdateCardLimit(String(cardNumber)), {
+        day: dayLimit,
+        month: monthLimit,
       });
     } catch (error) {
       set({ cards: prevCards });

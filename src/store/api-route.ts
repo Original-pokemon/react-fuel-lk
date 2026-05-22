@@ -8,6 +8,7 @@ const APIRoute = {
   MapMarkers: "/api/map-markers",
   Report: "online/report",
   UpdateCardOwner: (cardId: string | number) => `/admin/cards/${cardId}/cardowner`,
+  UpdateCardLimit: (cardId: string | number) => `/admin/cards/${cardId}/limit`,
 } as const;
 
 export { APIRoute };

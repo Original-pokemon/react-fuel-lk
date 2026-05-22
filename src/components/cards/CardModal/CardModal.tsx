@@ -29,11 +29,15 @@ type CardModalProperties = {
 
 function CardModal({ card }: CardModalProperties) {
   const [, setSearchParameters] = useSearchParams();
-  const { updateCardOwner } = useApiResponseStore();
+  const { updateCardOwner, updateCardLimit } = useApiResponseStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [ownerValue, setOwnerValue] = useState(card.cardOwner);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [editingLimit, setEditingLimit] = useState<'day' | 'month' | null>(null);
+  const [limitValue, setLimitValue] = useState('');
+  const [isSavingLimit, setIsSavingLimit] = useState(false);
 
   useEffect(() => {
     if (!isEditing) {
@@ -71,6 +75,79 @@ function CardModal({ card }: CardModalProperties) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSave();
     if (e.key === 'Escape') handleCancel();
+  };
+
+  const handleEditLimit = (field: 'day' | 'month') => {
+    setLimitValue(field === 'day' ? card.dayLimit : card.monthLimit);
+    setEditingLimit(field);
+  };
+
+  const handleSaveLimit = async () => {
+    const newValue = Math.max(0, Number(limitValue));
+    const dayLimit = editingLimit === 'day' ? newValue : +card.dayLimit;
+    const monthLimit = editingLimit === 'month' ? newValue : +card.monthLimit;
+
+    if (dayLimit === +card.dayLimit && monthLimit === +card.monthLimit) {
+      setEditingLimit(null);
+      return;
+    }
+
+    setIsSavingLimit(true);
+    try {
+      await updateCardLimit(card.cardNumber, dayLimit, monthLimit);
+      setEditingLimit(null);
+    } finally {
+      setIsSavingLimit(false);
+    }
+  };
+
+  const handleCancelLimit = () => setEditingLimit(null);
+
+  const handleLimitKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSaveLimit();
+    if (e.key === 'Escape') handleCancelLimit();
+  };
+
+  const renderLimitValue = (field: 'day' | 'month') => {
+    const limit = field === 'day' ? +card.dayLimit : +card.monthLimit;
+    const remain = field === 'day' ? +card.dayRemain : +card.monthRemain;
+
+    if (editingLimit === field) {
+      return (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <TextField
+            size="small"
+            type="number"
+            value={limitValue}
+            onChange={(e) => setLimitValue(e.target.value)}
+            onKeyDown={handleLimitKeyDown}
+            disabled={isSavingLimit}
+            autoFocus
+            inputProps={{ min: 0 }}
+            sx={{ maxWidth: 120 }}
+          />
+          <IconButton size="small" onClick={handleSaveLimit} disabled={isSavingLimit}>
+            {isSavingLimit ? (
+              <CircularProgress size={16} />
+            ) : (
+              <CheckIcon fontSize="small" color="success" />
+            )}
+          </IconButton>
+          <IconButton size="small" onClick={handleCancelLimit} disabled={isSavingLimit}>
+            <CloseIcon fontSize="small" color="error" />
+          </IconButton>
+        </Stack>
+      );
+    }
+
+    return (
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <LimitCell limit={limit} remain={remain} />
+        <IconButton size="small" onClick={() => handleEditLimit(field)}>
+          <EditIcon fontSize="small" />
+        </IconButton>
+      </Stack>
+    );
   };
 
   const ownerValueNode = isEditing ? (
@@ -165,21 +242,8 @@ function CardModal({ card }: CardModalProperties) {
         <InfoBlock
           title="Лимиты"
           rows={[
-            {
-              label: 'Дневной лимит',
-              value: (
-                <LimitCell limit={+card.dayLimit} remain={+card.dayRemain} />
-              ),
-            },
-            {
-              label: 'Месячный лимит',
-              value: (
-                <LimitCell
-                  limit={+card.monthLimit}
-                  remain={+card.monthRemain}
-                />
-              ),
-            },
+            { label: 'Дневной лимит', value: renderLimitValue('day') },
+            { label: 'Месячный лимит', value: renderLimitValue('month') },
           ]}
           direction="column"
           borderBetweenColumns
