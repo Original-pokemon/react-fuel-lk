@@ -72,8 +72,7 @@ const createAPI = (): AxiosInstance => {
         isIdempotent &&
         (!response ||
           (response.status >= 500 && response.status < 600) ||
-          code === "ERR_NETWORK" ||
-          code === "ECONNABORTED");
+          code === "ERR_NETWORK");
 
       if (shouldRetry && (config.retryCount || 0) < MAX_RETRIES) {
         config.retryCount = (config.retryCount || 0) + 1;
