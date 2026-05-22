@@ -30,25 +30,33 @@ type KeyMetricsCardProps = {
   totalCards: number;
 };
 
+function getSpendingLabel(cashBalance: string | number, cashOverdraft?: string): string {
+  if (cashOverdraft && +cashOverdraft !== 0) {
+    return `Перерасход: ${formatNumberWithSpaces(Number(cashOverdraft))} руб.`;
+  }
+  if (cashBalance === 'кредит') {
+    return 'Работа в кредит';
+  }
+  if (typeof cashBalance === 'string' && Number.isNaN(Number(cashBalance))) {
+    return cashBalance;
+  }
+  return `${formatNumberWithSpaces(Number(cashBalance))} руб.`;
+}
+
 function KeyMetricsCard({ firmInfo, activeCards, totalCards }: KeyMetricsCardProps) {
   const cashBalance = firmInfo.canSpendStringRubles;
   const cashOverdraft = firmInfo.fuelVolumeOverdraft['1'];
   const fuelData = getFuelData(firmInfo);
+  const spendingLabel = cashBalance && cashBalance !== '0'
+    ? getSpendingLabel(cashBalance, cashOverdraft)
+    : null;
 
   return (
     <DashboardCard title="Ключевые метрики">
-      {cashBalance && cashBalance !== '0' && (
+      {spendingLabel && (
         <KPIBox
           label="Можно потратить по договору"
-          value={
-            cashOverdraft && +cashOverdraft !== 0
-              ? `Перерасход: ${formatNumberWithSpaces(Number(cashOverdraft))} руб.`
-              : cashBalance === 'кредит'
-                ? 'Работа в кредит'
-                : typeof cashBalance === 'string' && Number.isNaN(Number(cashBalance))
-                  ? cashBalance
-                  : `${formatNumberWithSpaces(Number(cashBalance))} руб.`
-          }
+          value={spendingLabel}
         />
       )}
       {cashBalance === 'кредит' && firmInfo.total[1] && (
