@@ -15,7 +15,11 @@ function KPIBox({ label, value, variant = 'primary' }: KPIBoxProperties) {
       </Typography>
       <Typography
         variant="h5"
-        color={variant === 'primary' ? 'primary.main' : 'text.primary'}
+        color={
+          variant === 'error' ? 'error.main' :
+          variant === 'primary' ? 'primary.main' :
+          'text.primary'
+        }
       >
         {value}
       </Typography>

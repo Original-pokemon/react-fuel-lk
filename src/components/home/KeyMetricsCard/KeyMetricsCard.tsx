@@ -47,8 +47,10 @@ function KeyMetricsCard({ firmInfo, activeCards, totalCards }: KeyMetricsCardPro
   const cashBalance = firmInfo.canSpendStringRubles;
   const cashOverdraft = firmInfo.fuelVolumeOverdraft['1'];
   const fuelData = getFuelData(firmInfo);
-  const spendingLabel = cashBalance && cashBalance !== '0'
-    ? getSpendingLabel(cashBalance, cashOverdraft)
+  const hasOverdraft = !!cashOverdraft && +cashOverdraft !== 0;
+  const hasBalance = !!cashBalance && cashBalance !== '0';
+  const spendingLabel = hasBalance || hasOverdraft
+    ? getSpendingLabel(cashBalance ?? '0', cashOverdraft)
     : null;
 
   return (
@@ -57,6 +59,7 @@ function KeyMetricsCard({ firmInfo, activeCards, totalCards }: KeyMetricsCardPro
         <KPIBox
           label="Можно потратить по договору"
           value={spendingLabel}
+          variant={hasOverdraft ? 'error' : 'primary'}
         />
       )}
       {cashBalance === 'кредит' && firmInfo.total[1] && (
