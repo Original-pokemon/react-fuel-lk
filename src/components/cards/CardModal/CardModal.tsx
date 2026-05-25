@@ -78,7 +78,8 @@ function CardModal({ card }: CardModalProperties) {
   };
 
   const handleEditLimit = (field: 'day' | 'month') => {
-    setLimitValue(field === 'day' ? card.dayLimit : card.monthLimit);
+    const raw = field === 'day' ? card.dayLimit : card.monthLimit;
+    setLimitValue(String(Math.round(+raw)));
     setEditingLimit(field);
   };
 
@@ -113,6 +114,7 @@ function CardModal({ card }: CardModalProperties) {
     const remain = field === 'day' ? +card.dayRemain : +card.monthRemain;
 
     if (editingLimit === field) {
+      const limitChanged = Math.max(0, Number(limitValue)) !== limit;
       return (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <TextField
@@ -126,11 +128,11 @@ function CardModal({ card }: CardModalProperties) {
             inputProps={{ min: 0 }}
             sx={{ maxWidth: 120 }}
           />
-          <IconButton size="small" onClick={handleSaveLimit} disabled={isSavingLimit}>
+          <IconButton size="small" onClick={handleSaveLimit} disabled={isSavingLimit || !limitChanged}>
             {isSavingLimit ? (
               <CircularProgress size={16} />
             ) : (
-              <CheckIcon fontSize="small" color="success" />
+              <CheckIcon fontSize="small" color={limitChanged ? 'success' : 'disabled'} />
             )}
           </IconButton>
           <IconButton size="small" onClick={handleCancelLimit} disabled={isSavingLimit}>
@@ -150,6 +152,8 @@ function CardModal({ card }: CardModalProperties) {
     );
   };
 
+  const ownerChanged = ownerValue.trim() !== card.cardOwner;
+
   const ownerValueNode = isEditing ? (
     <Stack direction="row" alignItems="center" spacing={0.5}>
       <TextField
@@ -161,11 +165,11 @@ function CardModal({ card }: CardModalProperties) {
         autoFocus
         sx={{ maxWidth: 200 }}
       />
-      <IconButton size="small" onClick={handleSave} disabled={isSaving}>
+      <IconButton size="small" onClick={handleSave} disabled={isSaving || !ownerChanged}>
         {isSaving ? (
           <CircularProgress size={16} />
         ) : (
-          <CheckIcon fontSize="small" color="success" />
+          <CheckIcon fontSize="small" color={ownerChanged ? 'success' : 'disabled'} />
         )}
       </IconButton>
       <IconButton size="small" onClick={handleCancel} disabled={isSaving}>
