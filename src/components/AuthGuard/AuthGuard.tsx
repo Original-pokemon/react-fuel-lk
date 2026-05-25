@@ -13,8 +13,8 @@ function AuthGuard(): React.JSX.Element {
   const token = getToken();
 
   const isIdle = status === Status.Idle;
+  const isSuccess = status === Status.Success;
   const isError = status === Status.Error;
-  const isLoading = status === Status.Loading;
 
   useEffect(() => {
     if (isIdle && token) {
@@ -23,17 +23,23 @@ function AuthGuard(): React.JSX.Element {
   }, [isIdle, token, fetchAuthInfo]);
 
   useEffect(() => {
-    if (isError || !token) {
+    if (!token) {
+      navigate(AppRoute.Login);
+    }
+  }, [token, navigate]);
+
+  useEffect(() => {
+    if (isError) {
       navigate(AppRoute.Login);
       logout();
     }
-  }, [isError, token, navigate, logout]);
+  }, [isError, navigate, logout]);
 
-  if (isLoading) {
-    return <Spinner fullscreen size={100} />;
+  if (isSuccess) {
+    return <Outlet />;
   }
 
-  return <Outlet />;
+  return <Spinner fullscreen size={100} />;
 }
 
 export default AuthGuard;
